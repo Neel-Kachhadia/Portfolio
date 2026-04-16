@@ -22,7 +22,7 @@ const projects = [
     name: "NeuroFin — AI Financial Assistant",
     system_type: "12-Agent Ensemble Financial Intelligence Platform",
     architecture: "12 specialist Python microservices → Amazon Nova via Bedrock → explainable personalized recommendations",
-    stack: "React · Node.js · Express · Python · Amazon Bedrock · EC2 · DocumentDB · Redis · S3 · SNS",
+    stack: "React · MERN · Python · LangGraph · Amazon Bedrock · EC2 · DocumentDB · Redis · S3 · SNS",
     feature: "Proactive financial intelligence — anomaly detection (Isolation Forest, 3000+ tx), 30-day cash flow forecasting, tax optimization, Family Hub",
     latency: "Redis-cached pipeline · parallel agent execution · deterministic routing (zero LLM overhead)",
     status: "DEPLOYED",
