@@ -38,7 +38,7 @@ const projects = [
     feature: "LLM-generated personalised learning paths · embedding-based compatibility matching",
     latency: null,
     status: "DEPLOYED",
-    source: "github.com/Neel-Kachhadia/Mentora",
+    source: "github.com/Neel-Kachhadia/Mentore-Mentee-Platform",
     slug: "mentora",
   },
 ];
