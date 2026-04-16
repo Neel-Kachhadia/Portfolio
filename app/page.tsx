@@ -14,15 +14,15 @@ export default function Home() {
       <Loader />
       <Nav />
       <CommandPalette />
-      
-      <main className="flex min-h-screen flex-col items-center w-full max-w-[1400px] mx-auto overflow-hidden">
+
+      <main className="flex flex-col w-full max-w-[1400px] mx-auto">
         <Hero />
         <Marquee />
         <Projects />
         <About />
         <Contact />
       </main>
-      
+
       <Chat />
     </>
   );

@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 :root {
   --cream: #F5F0E8;
   --ink: #1A1612;
@@ -9,7 +16,7 @@
   --stone: #8C8480;
   --paper: #EDE8DE;
   --electric: #4AFF91;
-  --grid: rgba(26,22,18,0.06);
+  --grid: rgba(26, 22, 18, 0.06);
 }
 
 body {
