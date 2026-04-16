@@ -11,22 +11,22 @@ const projects = [
     system_type: "Stateful Agentic Pipeline",
     architecture: "Live market data → LangGraph multi-step reasoning → FastAPI stateless pipeline → React dashboard",
     stack: "React · FastAPI · LangGraph · Python · Tailwind · AWS EC2/S3",
-    feature: "Context-aware LLM investment recommendations",
+    feature: "Context-aware LLM investment recommendations · high-throughput stateless pipeline",
     latency: null,
     status: "DEPLOYED",
-    source: "github.com/Neel-Kachhadia/equity",
+    source: "github.com/Neel-Kachhadia/Equity-Research-Platform",
     slug: "equity",
   },
   {
     id: "02",
     name: "NeuroFin — AI Financial Assistant",
-    system_type: "Adaptive Forecasting Engine",
-    architecture: "Conversational forecasting via LangGraph, behaviour-based recommendation engine",
-    stack: "MERN · Python · LangGraph · AWS Lambda · S3",
-    feature: "Adaptive feedback loop — self-corrects predictions, reduces drift",
-    latency: "< 200ms",
+    system_type: "12-Agent Ensemble Financial Intelligence Platform",
+    architecture: "12 specialist Python microservices → Amazon Nova via Bedrock → explainable personalized recommendations",
+    stack: "React · Node.js · Express · Python · Amazon Bedrock · EC2 · DocumentDB · Redis · S3 · SNS",
+    feature: "Proactive financial intelligence — anomaly detection (Isolation Forest, 3000+ tx), 30-day cash flow forecasting, tax optimization, Family Hub",
+    latency: "Redis-cached pipeline · parallel agent execution · deterministic routing (zero LLM overhead)",
     status: "DEPLOYED",
-    source: "github.com/Neel-Kachhadia/neurofin",
+    source: "github.com/Neel-Kachhadia/NeuroFin",
     slug: "neurofin",
   },
   {
@@ -35,10 +35,10 @@ const projects = [
     system_type: "Semantic Matching Engine",
     architecture: "OpenAI embeddings → semantic mentor-mentee matching → Firebase real-time chat",
     stack: "React · Node.js · Express · Firebase · OpenAI API",
-    feature: "AI-generated personalised learning paths",
+    feature: "LLM-generated personalised learning paths · embedding-based compatibility matching",
     latency: null,
     status: "DEPLOYED",
-    source: "github.com/Neel-Kachhadia/mentora",
+    source: "github.com/Neel-Kachhadia/Mentora",
     slug: "mentora",
   },
 ];
@@ -69,9 +69,8 @@ export default function Projects() {
             <div
               id={`project-${proj.slug}`}
               key={proj.id}
-              className={`group flex w-full flex-col border-b border-ink/10 transition-colors duration-300 ${
-                isExpanded ? "bg-paper" : "hover:bg-paper/50"
-              }`}
+              className={`group flex w-full flex-col border-b border-ink/10 transition-colors duration-300 ${isExpanded ? "bg-paper" : "hover:bg-paper/50"
+                }`}
             >
               {/* Accordion Header */}
               <button
@@ -83,19 +82,24 @@ export default function Projects() {
                     {proj.id}
                   </span>
                   <div className="relative">
-                    <span className="text-xl font-black tracking-tighter text-ink md:text-4xl" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                    <span
+                      className="text-xl font-black tracking-tighter text-ink md:text-4xl"
+                      style={{ fontFamily: "var(--font-geist-mono)" }}
+                    >
                       {proj.name}
                     </span>
-                    {/* Hover underline effect */}
                     <div className="absolute -bottom-1 left-0 h-[2px] w-0 bg-ink transition-all duration-300 group-hover:w-full" />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-6">
-                   <div className="hidden font-mono text-xs text-stone md:block">
-                     {proj.stack.split(" · ").slice(0, 3).join(" · ")}...
-                   </div>
-                   <ArrowRight className={`h-5 w-5 text-ink transition-all duration-300 ${isExpanded ? "rotate-90" : "group-hover:translate-x-2"}`} />
+                  <div className="hidden font-mono text-xs text-stone md:block">
+                    {proj.stack.split(" · ").slice(0, 3).join(" · ")}...
+                  </div>
+                  <ArrowRight
+                    className={`h-5 w-5 text-ink transition-all duration-300 ${isExpanded ? "rotate-90" : "group-hover:translate-x-2"
+                      }`}
+                  />
                 </div>
               </button>
 
@@ -109,60 +113,53 @@ export default function Projects() {
                     className="overflow-hidden"
                   >
                     <div className="flex flex-col gap-12 px-2 pb-12 pt-4 md:flex-row md:px-4 md:pt-8 md:pb-16">
-                      
+
                       {/* Left: System Spec */}
                       <div className="flex w-full flex-col font-mono text-xs md:w-[45%] md:text-sm">
-                        
-                        <div className="mb-4 grid grid-cols-[120px_1fr] items-start gap-4">
-                          <span className="text-stone">SYSTEM TYPE</span>
+
+                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                          <span className="text-stone flex-shrink-0">SYSTEM TYPE</span>
                           <span className="text-ink">{proj.system_type}</span>
                         </div>
-                        
-                        <div className="mb-4 grid grid-cols-[120px_1fr] items-start gap-4">
-                          <span className="text-stone">ARCHITECTURE</span>
+
+                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                          <span className="text-stone flex-shrink-0">ARCHITECTURE</span>
                           <span className="text-ink">{proj.architecture}</span>
                         </div>
-                        
-                        <div className="mb-4 grid grid-cols-[120px_1fr] items-start gap-4">
-                          <span className="text-stone">STACK</span>
-                          <span className="text-ink">{proj.stack}</span>
+
+                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                          <span className="text-stone flex-shrink-0">STACK</span>
+                          <span className="text-ink break-words">{proj.stack}</span>
                         </div>
-                        
+
                         {proj.latency && (
-                          <div className="mb-4 grid grid-cols-[120px_1fr] items-start gap-4">
-                            <span className="text-stone">LATENCY</span>
-                            <span className="font-semibold text-ink">{proj.latency}</span>
+                          <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                            <span className="text-stone flex-shrink-0">PERFORMANCE</span>
+                            <span className="text-ink">{proj.latency}</span>
                           </div>
                         )}
-                        
-                        <div className="mb-4 grid grid-cols-[120px_1fr] items-start gap-4">
-                          <span className="text-stone">FEATURE</span>
+
+                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                          <span className="text-stone flex-shrink-0">FEATURE</span>
                           <span className="text-ink">{proj.feature}</span>
                         </div>
-                        
-                        <div className="mb-12 grid grid-cols-[120px_1fr] items-start gap-4">
-                          <span className="text-stone">STATUS</span>
+
+                        <div className="mb-12 grid grid-cols-[130px_1fr] items-start gap-4">
+                          <span className="text-stone flex-shrink-0">STATUS</span>
                           <span className="flex items-center gap-2 text-ink">
-                            <div className="h-2 w-2 rounded-full bg-electric" />
+                            <div className="h-2 w-2 rounded-full bg-electric animate-pulse" />
                             {proj.status}
                           </span>
                         </div>
 
-                        <a
-                          href={`https://${proj.source}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex w-fit items-center gap-2 border-b border-ink pb-1 font-mono text-[13px] uppercase tracking-wide text-ink transition-colors hover:text-electric hover:border-electric"
-                        >
-                          [ <ArrowUpRight className="h-3 w-3" /> Source ]
-                        </a>
+                        <a href={`https://${proj.source}`} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-2 border-b border-ink pb-1 font-mono text-[13px] uppercase tracking-wide text-ink transition-colors hover:text-electric hover:border-electric">[ <ArrowUpRight className="h-3 w-3" /> Source ]</a>
                       </div>
 
                       {/* Right: SVG Diagram */}
                       <div className="flex w-full items-center justify-center border border-ink/5 bg-cream/30 p-8 md:w-[55%] min-h-[300px]">
-                         {proj.slug === "equity" && <EquityDiagram />}
-                         {proj.slug === "neurofin" && <NeurofinDiagram />}
-                         {proj.slug === "mentora" && <MentoraDiagram />}
+                        {proj.slug === "equity" && <EquityDiagram />}
+                        {proj.slug === "neurofin" && <NeurofinDiagram />}
+                        {proj.slug === "mentora" && <MentoraDiagram />}
                       </div>
 
                     </div>
@@ -173,44 +170,56 @@ export default function Projects() {
           );
         })}
       </div>
-    </section>
+    </section >
   );
 }
 
-// ----------------------------------------------------------------------
 // SVG Diagrams
-// ----------------------------------------------------------------------
 
 function EquityDiagram() {
   return (
-    <svg viewBox="0 0 400 150" className="w-full max-w-md h-auto font-mono text-[10px]">
-      <g stroke="#1A1612" strokeWidth="1" fill="none">
-         {/* Base line */}
-         <path d="M 50 75 L 350 75" />
-         
-         {/* Animated dots container - left to right */}
-         <circle r="3" fill="#4AFF91" stroke="none">
-            <animateMotion dur="2.5s" repeatCount="indefinite" path="M 50 75 L 350 75" />
-         </circle>
-         <circle r="3" fill="#4AFF91" stroke="none">
-            <animateMotion dur="2.5s" begin="0.8s" repeatCount="indefinite" path="M 50 75 L 350 75" />
-         </circle>
-         <circle r="3" fill="#4AFF91" stroke="none">
-            <animateMotion dur="2.5s" begin="1.6s" repeatCount="indefinite" path="M 50 75 L 350 75" />
-         </circle>
+    <svg viewBox="0 0 420 160" className="w-full max-w-md h-auto font-mono text-[10px]">
+      <defs>
+        <marker id="arrow-eq" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="#1A1612" fillOpacity="0.4" />
+        </marker>
+      </defs>
+      <g fill="none">
+        {/* Connecting lines */}
+        <line x1="85" y1="80" x2="118" y2="80" stroke="#4AFF91" strokeOpacity="0.4" strokeWidth="1" markerEnd="url(#arrow-eq)" />
+        <line x1="195" y1="80" x2="228" y2="80" stroke="#4AFF91" strokeOpacity="0.4" strokeWidth="1" markerEnd="url(#arrow-eq)" />
+        <line x1="305" y1="80" x2="338" y2="80" stroke="#4AFF91" strokeOpacity="0.4" strokeWidth="1" markerEnd="url(#arrow-eq)" />
 
-         {/* Nodes */}
-         <rect x="30" y="60" width="40" height="30" fill="#EDE8DE" />
-         <text x="50" y="78" fill="#1A1612" textAnchor="middle" stroke="none">MD</text>
-         
-         <circle cx="150" cy="75" r="25" fill="#EDE8DE" />
-         <text x="150" y="78" fill="#1A1612" textAnchor="middle" stroke="none">LG</text>
+        {/* Traveling dots */}
+        <circle r="3" fill="#4AFF91">
+          <animateMotion dur="3s" repeatCount="indefinite" path="M 45 80 L 375 80" />
+        </circle>
+        <circle r="3" fill="#4AFF91">
+          <animateMotion dur="3s" begin="1s" repeatCount="indefinite" path="M 45 80 L 375 80" />
+        </circle>
+        <circle r="3" fill="#4AFF91">
+          <animateMotion dur="3s" begin="2s" repeatCount="indefinite" path="M 45 80 L 375 80" />
+        </circle>
 
-         <rect x="230" y="55" width="40" height="40" rx="4" fill="#EDE8DE" />
-         <text x="250" y="78" fill="#1A1612" textAnchor="middle" stroke="none">LLM</text>
+        {/* Node 1 */}
+        <rect x="5" y="60" width="80" height="40" rx="4" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="45" y="76" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">Market</text>
+        <text x="45" y="88" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">Data</text>
 
-         <path d="M 350 75 L 340 65 V 85 Z" fill="#1A1612" />
-         <text x="350" y="55" fill="#1A1612" textAnchor="middle" stroke="none">Insights</text>
+        {/* Node 2 */}
+        <rect x="118" y="60" width="80" height="40" rx="4" fill="#EDE8DE" stroke="#4AFF91" strokeOpacity="0.4" strokeWidth="0.8" />
+        <text x="158" y="76" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">LangGraph</text>
+        <text x="158" y="88" fill="#8C8480" textAnchor="middle" fontSize="8" fontFamily="monospace">reasoning</text>
+
+        {/* Node 3 */}
+        <rect x="228" y="60" width="80" height="40" rx="4" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="268" y="76" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">FastAPI</text>
+        <text x="268" y="88" fill="#8C8480" textAnchor="middle" fontSize="8" fontFamily="monospace">pipeline</text>
+
+        {/* Node 4 */}
+        <rect x="338" y="60" width="75" height="40" rx="4" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="375" y="76" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">React</text>
+        <text x="375" y="88" fill="#8C8480" textAnchor="middle" fontSize="8" fontFamily="monospace">dashboard</text>
       </g>
     </svg>
   );
@@ -218,28 +227,64 @@ function EquityDiagram() {
 
 function NeurofinDiagram() {
   return (
-     <svg viewBox="0 0 300 200" className="w-full max-w-sm h-auto font-mono text-[10px]">
-      <g stroke="#1A1612" strokeWidth="1" fill="none">
-         {/* Loop Path */}
-         <path id="loopPath" d="M 150 50 A 50 50 0 1 1 149.9 50" />
-         
-         {/* Animated orbiting dot */}
-         <circle r="4" fill="#4AFF91" stroke="none">
-            <animateMotion dur="4s" repeatCount="indefinite" path="M 150 50 A 50 50 0 1 1 149.9 50" />
-         </circle>
+    <svg viewBox="0 0 380 280" className="w-full max-w-md h-auto font-mono text-[10px]">
+      <g fill="none">
+        {/* Outer ring connections */}
+        <circle cx="190" cy="140" r="90" stroke="#4AFF91" strokeOpacity="0.12" strokeWidth="1" strokeDasharray="3 3" />
 
-         {/* Nodes */}
-         <circle cx="150" cy="50" r="18" fill="#EDE8DE" />
-         <text x="150" y="53" fill="#1A1612" textAnchor="middle" stroke="none">USR</text>
-         
-         <circle cx="200" cy="100" r="18" fill="#EDE8DE" />
-         <text x="200" y="103" fill="#1A1612" textAnchor="middle" stroke="none">MOD</text>
+        {/* Connection lines between agents */}
+        <line x1="190" y1="55" x2="275" y2="108" stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8" />
+        <line x1="275" y1="108" x2="275" y2="172" stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8" />
+        <line x1="275" y1="172" x2="190" y2="225" stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8" />
+        <line x1="190" y1="225" x2="105" y2="172" stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8" />
+        <line x1="105" y1="172" x2="105" y2="108" stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8" />
+        <line x1="105" y1="108" x2="190" y2="55" stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8" />
 
-         <circle cx="150" cy="150" r="18" fill="#EDE8DE" />
-         <text x="150" y="153" fill="#1A1612" textAnchor="middle" stroke="none">PRD</text>
+        {/* Center node — Amazon Nova */}
+        <circle cx="190" cy="140" r="28" fill="#EDE8DE" stroke="#4AFF91" strokeOpacity="0.5" strokeWidth="1" />
+        <text x="190" y="136" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">Amazon</text>
+        <text x="190" y="147" fill="#4AFF91" textAnchor="middle" fontSize="8" fontFamily="monospace">Nova</text>
 
-         <circle cx="100" cy="100" r="18" fill="#EDE8DE" />
-         <text x="100" y="103" fill="#1A1612" textAnchor="middle" stroke="none">FBK</text>
+        {/* Orbiting dot */}
+        <circle r="3.5" fill="#4AFF91">
+          <animateMotion dur="5s" repeatCount="indefinite"
+            path="M 190 50 C 280 50 330 140 280 220 C 230 300 150 300 100 220 C 50 140 100 50 190 50" />
+        </circle>
+        <circle r="3.5" fill="#4AFF91" opacity="0.5">
+          <animateMotion dur="5s" begin="2.5s" repeatCount="indefinite"
+            path="M 190 50 C 280 50 330 140 280 220 C 230 300 150 300 100 220 C 50 140 100 50 190 50" />
+        </circle>
+
+        {/* Agent nodes */}
+        {/* Top */}
+        <rect x="152" y="30" width="76" height="28" rx="3" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="190" y="42" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">analyst</text>
+        <text x="190" y="52" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">800+ tx</text>
+
+        {/* Top right */}
+        <rect x="252" y="90" width="76" height="28" rx="3" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="290" y="102" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">forecast</text>
+        <text x="290" y="112" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">30-day</text>
+
+        {/* Bottom right */}
+        <rect x="252" y="158" width="76" height="28" rx="3" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="290" y="170" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">risk</text>
+        <text x="290" y="180" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">0-100 score</text>
+
+        {/* Bottom */}
+        <rect x="152" y="218" width="76" height="28" rx="3" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="190" y="230" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">advisor</text>
+        <text x="190" y="240" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">personalized</text>
+
+        {/* Bottom left */}
+        <rect x="52" y="158" width="76" height="28" rx="3" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="90" y="170" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">savings</text>
+        <text x="90" y="180" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">health score</text>
+
+        {/* Top left */}
+        <rect x="52" y="90" width="76" height="28" rx="3" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="90" y="102" fill="#1A1612" textAnchor="middle" fontSize="8" fontFamily="monospace">classifier</text>
+        <text x="90" y="112" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">tx tagging</text>
       </g>
     </svg>
   );
@@ -247,27 +292,39 @@ function NeurofinDiagram() {
 
 function MentoraDiagram() {
   return (
-     <svg viewBox="0 0 400 150" className="w-full max-w-md h-auto font-mono text-[10px]">
-      <g stroke="#1A1612" strokeWidth="1" fill="none">
-         {/* Connection */}
-         <path d="M 100 75 L 300 75" strokeDasharray="4 4">
-            <animate attributeName="strokeOpacity" values="0.2;1;0.2" dur="2s" repeatCount="indefinite" />
-         </path>
+    <svg viewBox="0 0 400 160" className="w-full max-w-md h-auto font-mono text-[10px]">
+      <g fill="none">
+        {/* Pulsing connection line */}
+        <line x1="105" y1="80" x2="295" y2="80" stroke="#4AFF91" strokeWidth="1" strokeDasharray="4 4">
+          <animate attributeName="strokeOpacity" values="0.15;0.6;0.15" dur="2.5s" repeatCount="indefinite" />
+        </line>
 
-         {/* Arrow markers */}
-         <path d="M 110 70 L 100 75 L 110 80" />
-         <path d="M 290 70 L 300 75 L 290 80" />
+        {/* Traveling dot */}
+        <circle r="3" fill="#4AFF91">
+          <animateMotion dur="2.5s" repeatCount="indefinite" path="M 105 80 L 295 80" />
+        </circle>
+        <circle r="3" fill="#4AFF91" opacity="0.5">
+          <animateMotion dur="2.5s" begin="1.25s" repeatCount="indefinite" path="M 295 80 L 105 80" />
+        </circle>
 
-         {/* Nodes */}
-         <circle cx="70" cy="75" r="30" fill="#EDE8DE" />
-         <text x="70" y="78" fill="#1A1612" textAnchor="middle" stroke="none">Mentee</text>
-         
-         <circle cx="330" cy="75" r="30" fill="#EDE8DE" />
-         <text x="330" y="78" fill="#1A1612" textAnchor="middle" stroke="none">Mentor</text>
+        {/* Arrow markers */}
+        <path d="M 115 73 L 105 80 L 115 87" stroke="#4AFF91" strokeOpacity="0.5" strokeWidth="1" />
+        <path d="M 285 73 L 295 80 L 285 87" stroke="#4AFF91" strokeOpacity="0.5" strokeWidth="1" />
 
-         {/* Center label */}
-         <rect x="170" y="65" width="60" height="20" fill="#F5F0E8" stroke="none" />
-         <text x="200" y="78" fill="#4AFF91" stroke="#4AFF91" strokeWidth="0.2" textAnchor="middle">[Embed]</text>
+        {/* Mentee node */}
+        <circle cx="70" cy="80" r="34" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="70" y="76" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">Mentee</text>
+        <text x="70" y="88" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">goals + level</text>
+
+        {/* Mentor node */}
+        <circle cx="330" cy="80" r="34" fill="#EDE8DE" stroke="#1A1612" strokeOpacity="0.2" strokeWidth="0.8" />
+        <text x="330" y="76" fill="#1A1612" textAnchor="middle" fontSize="9" fontFamily="monospace">Mentor</text>
+        <text x="330" y="88" fill="#8C8480" textAnchor="middle" fontSize="7" fontFamily="monospace">skills + exp</text>
+
+        {/* Center embedding label */}
+        <rect x="158" y="62" width="84" height="36" rx="3" fill="#F5F0E8" stroke="#4AFF91" strokeOpacity="0.3" strokeWidth="0.8" />
+        <text x="200" y="76" fill="#4AFF91" textAnchor="middle" fontSize="8" fontFamily="monospace">OpenAI</text>
+        <text x="200" y="88" fill="#4AFF91" textAnchor="middle" fontSize="8" fontFamily="monospace">embeddings</text>
       </g>
     </svg>
   );

@@ -103,20 +103,35 @@ function NodeGraph() {
     resize();
     window.addEventListener("resize", resize);
 
-    const nodes = labels.map((label) => ({
-      label,
-      x: Math.random() * width * 0.7 + width * 0.15,
-      y: Math.random() * height * 0.7 + height * 0.15,
-      baseX: 0, baseY: 0,
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.0008 + Math.random() * 0.001,
-      amplitude: 12 + Math.random() * 15,
-      vx: 0, vy: 0,
-    }));
-    nodes.forEach(n => { n.baseX = n.x; n.baseY = n.y; });
+    // Fixed positions — no random clustering
+    const nodeData = [
+      { label: "LangGraph", px: 0.2, py: 0.2 },
+      { label: "FastAPI", px: 0.5, py: 0.15 },
+      { label: "React", px: 0.8, py: 0.2 },
+      { label: "AWS Lambda", px: 0.15, py: 0.45 },
+      { label: "Firebase", px: 0.45, py: 0.4 },
+      { label: "OpenAI API", px: 0.78, py: 0.45 },
+      { label: "Python", px: 0.25, py: 0.7 },
+      { label: "TypeScript", px: 0.55, py: 0.65 },
+      { label: "Node.js", px: 0.82, py: 0.68 },
+      { label: "Pandas", px: 0.15, py: 0.88 },
+      { label: "AWS S3", px: 0.5, py: 0.85 },
+      { label: "Tailwind", px: 0.82, py: 0.88 },
+    ];
 
-    let mouseX = width / 2;
-    let mouseY = height / 2;
+    const nodes = nodeData.map(n => ({
+      ...n,
+      x: n.px * width,
+      y: n.py * height,
+      baseX: n.px * width,
+      baseY: n.py * height,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.0004 + Math.random() * 0.0004,
+      amplitude: 8 + Math.random() * 10,
+    }));
+
+    let mouseX = -999;
+    let mouseY = -999;
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
@@ -124,73 +139,73 @@ function NodeGraph() {
     };
     canvas.addEventListener("mousemove", handleMouseMove);
 
-    const connections: { from: number; to: number }[] = [];
-    for (let i = 0; i < nodes.length; i++) {
-      connections.push({ from: i, to: (i + 1) % nodes.length });
-      if (i % 3 === 0) connections.push({ from: i, to: (i + 4) % nodes.length });
-    }
+    // Clean connections — no self-loops
+    const connections = [
+      [0, 1], [1, 2], [0, 3], [1, 4], [2, 5],
+      [3, 6], [4, 7], [5, 8], [6, 9], [7, 10],
+      [8, 11], [0, 4], [2, 7], [4, 8], [1, 7],
+    ];
 
-    const dots = Array.from({ length: 12 }).map(() => ({
-      connectionIdx: Math.floor(Math.random() * connections.length),
+    const dots = Array.from({ length: 10 }).map(() => ({
+      connIdx: Math.floor(Math.random() * connections.length),
       progress: Math.random(),
-      speed: 0.0015 + Math.random() * 0.002,
+      speed: 0.003 + Math.random() * 0.002,
     }));
 
     let animationFrameId: number;
-    let lastTime = 0;
-    const FPS = 60;
-    const interval = 1000 / FPS;
+    let lastTimestamp = 0;
 
     const render = (timestamp: number) => {
       animationFrameId = requestAnimationFrame(render);
-      const delta = timestamp - lastTime;
-      if (delta < interval) return; // FPS cap
-      lastTime = timestamp - (delta % interval);
 
-      const time = timestamp * 0.001; // seconds, smooth
+      // Cap at ~50fps to reduce CPU load
+      if (timestamp - lastTimestamp < 20) return;
+      lastTimestamp = timestamp;
 
+      const t = timestamp * 0.001;
       ctx.clearRect(0, 0, width, height);
 
+      // Update node positions
       nodes.forEach(node => {
-        const waveX = Math.sin(time * node.speed * 60 + node.phase) * node.amplitude;
-        const waveY = Math.cos(time * node.speed * 48 + node.phase) * node.amplitude;
+        const waveX = Math.sin(t * node.speed * 60 + node.phase) * node.amplitude;
+        const waveY = Math.cos(t * node.speed * 48 + node.phase) * node.amplitude;
         let targetX = node.baseX + waveX;
         let targetY = node.baseY + waveY;
+
         const dx = mouseX - targetX;
         const dy = mouseY - targetY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 120) {
-          const force = (120 - dist) / 120;
-          targetX += dx * force * 0.08;
-          targetY += dy * force * 0.08;
+        if (dist < 100 && dist > 0) {
+          const force = (100 - dist) / 100;
+          targetX += dx * force * 0.06;
+          targetY += dy * force * 0.06;
         }
-        node.x += (targetX - node.x) * 0.08;
-        node.y += (targetY - node.y) * 0.08;
+
+        node.x += (targetX - node.x) * 0.06;
+        node.y += (targetY - node.y) * 0.06;
       });
 
       // Draw connections
       ctx.lineWidth = 0.8;
-      ctx.strokeStyle = "rgba(74, 255, 145, 0.25)";
-      connections.forEach(conn => {
-        const p1 = nodes[conn.from];
-        const p2 = nodes[conn.to];
+      ctx.strokeStyle = "rgba(74,255,145,0.2)";
+      connections.forEach(([from, to]) => {
         ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
+        ctx.moveTo(nodes[from].x, nodes[from].y);
+        ctx.lineTo(nodes[to].x, nodes[to].y);
         ctx.stroke();
       });
 
-      // Draw dots
+      // Draw traveling dots
       ctx.fillStyle = "#4AFF91";
       dots.forEach(dot => {
         dot.progress += dot.speed;
         if (dot.progress > 1) {
           dot.progress = 0;
-          dot.connectionIdx = Math.floor(Math.random() * connections.length);
+          dot.connIdx = Math.floor(Math.random() * connections.length);
         }
-        const conn = connections[dot.connectionIdx];
-        const p1 = nodes[conn.from];
-        const p2 = nodes[conn.to];
+        const [from, to] = connections[dot.connIdx];
+        const p1 = nodes[from];
+        const p2 = nodes[to];
         ctx.beginPath();
         ctx.arc(
           p1.x + (p2.x - p1.x) * dot.progress,
@@ -200,20 +215,23 @@ function NodeGraph() {
         ctx.fill();
       });
 
-      // Draw nodes
-      ctx.font = "11px monospace";
+      // Draw nodes + labels
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       nodes.forEach(node => {
+        // Node dot
         ctx.fillStyle = "#EDE8DE";
-        ctx.strokeStyle = "rgba(26,22,18,0.4)";
+        ctx.strokeStyle = "rgba(26,22,18,0.35)";
         ctx.lineWidth = 0.8;
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = "#3D3530";
-        ctx.fillText(node.label, node.x, node.y - 14);
+
+        // Label
+        ctx.font = "11px 'Geist Mono', monospace";
+        ctx.fillStyle = "rgba(26,22,18,0.6)";
+        ctx.fillText(node.label, node.x, node.y - 16);
       });
     };
 
