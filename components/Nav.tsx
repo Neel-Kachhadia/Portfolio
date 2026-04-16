@@ -22,8 +22,9 @@ export default function Nav() {
   return (
     <nav
       className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 py-4 font-mono text-sm uppercase transition-all duration-300 ${
-        scrolled ? "bg-cream/70 backdrop-blur-md" : "bg-transparent"
+        scrolled ? "backdrop-blur-md" : ""
       }`}
+      style={{ background: scrolled ? 'rgba(245,240,232,0.95)' : 'rgba(245,240,232,0.7)' }}
     >
       <div className="flex items-center space-x-2 text-ink">
         <span className="font-semibold">NK</span>

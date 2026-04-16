@@ -83,7 +83,7 @@ export default function Projects() {
                     {proj.id}
                   </span>
                   <div className="relative">
-                    <span className="text-xl font-bold tracking-tight text-ink md:text-4xl">
+                    <span className="text-xl font-black tracking-tighter text-ink md:text-4xl" style={{ fontFamily: 'var(--font-geist-mono)' }}>
                       {proj.name}
                     </span>
                     {/* Hover underline effect */}

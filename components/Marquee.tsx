@@ -6,16 +6,12 @@ export default function Marquee() {
 
   return (
     <div className="flex w-full overflow-hidden bg-paper py-3 border-y border-ink/5">
-      <div className="flex w-fit animate-marquee whitespace-nowrap font-mono text-[11px] uppercase tracking-wider text-stone">
-        {/* Repeat content enough times to ensure it covers the screen width to loop seamlessly */}
-        <span>{content}</span>
-        <span>{content}</span>
-        <span>{content}</span>
-        <span>{content}</span>
-        <span>{content}</span>
-        <span>{content}</span>
-        <span>{content}</span>
-        <span>{content}</span>
+      <div
+        className="flex whitespace-nowrap font-mono text-[11px] uppercase tracking-wider text-stone"
+        style={{ animation: "marquee 25s linear infinite" }}
+      >
+        <span className="pr-4">{content}</span>
+        <span className="pr-4">{content}</span>
       </div>
     </div>
   );

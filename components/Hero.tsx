@@ -53,18 +53,18 @@ export default function Hero() {
       {/* Right Column (45%) */}
       <div className="relative mt-16 flex w-full items-center justify-center md:mt-0 md:h-full md:w-[45%]">
         <NodeGraph />
-        
+
         {/* Mobile Fallback SVG */}
         <div className="block w-full max-w-sm md:hidden text-ink/20">
           <svg viewBox="0 0 400 400" className="w-full h-auto">
-             <g stroke="currentColor" strokeWidth="1" fill="none">
-               <circle cx="100" cy="100" r="40" strokeDasharray="4 4" />
-               <circle cx="300" cy="150" r="60" />
-               <circle cx="200" cy="300" r="50" />
-               <path d="M100 100 L 300 150 L 200 300 Z" strokeOpacity="0.2"/>
-               <circle cx="200" cy="200" r="4" fill="currentColor"/>
-               <circle cx="250" cy="225" r="4" fill="#4AFF91"/>
-             </g>
+            <g stroke="currentColor" strokeWidth="1" fill="none">
+              <circle cx="100" cy="100" r="40" strokeDasharray="4 4" />
+              <circle cx="300" cy="150" r="60" />
+              <circle cx="200" cy="300" r="50" />
+              <path d="M100 100 L 300 150 L 200 300 Z" strokeOpacity="0.2" />
+              <circle cx="200" cy="200" r="4" fill="currentColor" />
+              <circle cx="250" cy="225" r="4" fill="#4AFF91" />
+            </g>
           </svg>
         </div>
       </div>
@@ -74,8 +74,8 @@ export default function Hero() {
 
 // Node Graph Canvas Component
 const labels = [
-  "LangGraph", "FastAPI", "React", "AWS Lambda", 
-  "Firebase", "OpenAI API", "Python", "TypeScript", 
+  "LangGraph", "FastAPI", "React", "AWS Lambda",
+  "Firebase", "OpenAI API", "Python", "TypeScript",
   "Node.js", "Pandas", "AWS S3", "Tailwind"
 ];
 
@@ -85,47 +85,38 @@ function NodeGraph() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     let width = canvas.offsetWidth;
     let height = canvas.offsetHeight;
-    
-    // Handle high DPI displays
     const dpr = window.devicePixelRatio || 1;
+
     function resize() {
-      if(!canvas) return;
+      if (!canvas) return;
       width = canvas.offsetWidth;
       height = canvas.offsetHeight;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
-      ctx?.scale(dpr, dpr);
+      ctx!.scale(dpr, dpr);
     }
     resize();
     window.addEventListener("resize", resize);
 
-    // Node generation
     const nodes = labels.map((label) => ({
       label,
-      x: Math.random() * width * 0.8 + width * 0.1,
-      y: Math.random() * height * 0.8 + height * 0.1,
-      baseX: 0,
-      baseY: 0,
+      x: Math.random() * width * 0.7 + width * 0.15,
+      y: Math.random() * height * 0.7 + height * 0.15,
+      baseX: 0, baseY: 0,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.001 + Math.random() * 0.002,
-      amplitude: 15 + Math.random() * 20,
+      speed: 0.0008 + Math.random() * 0.001,
+      amplitude: 12 + Math.random() * 15,
+      vx: 0, vy: 0,
     }));
-    
-    // Set base positions
-    nodes.forEach(n => {
-      n.baseX = n.x;
-      n.baseY = n.y;
-    });
+    nodes.forEach(n => { n.baseX = n.x; n.baseY = n.y; });
 
     let mouseX = width / 2;
     let mouseY = height / 2;
-    
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
@@ -133,54 +124,53 @@ function NodeGraph() {
     };
     canvas.addEventListener("mousemove", handleMouseMove);
 
-    // Generate traveling dots
-    const connections: {from: number, to: number}[] = [];
-    for(let i=0; i<nodes.length; i++) {
-        // connect each node to 1-2 others
-        connections.push({from: i, to: Math.floor(Math.random() * nodes.length)});
+    const connections: { from: number; to: number }[] = [];
+    for (let i = 0; i < nodes.length; i++) {
+      connections.push({ from: i, to: (i + 1) % nodes.length });
+      if (i % 3 === 0) connections.push({ from: i, to: (i + 4) % nodes.length });
     }
-    
-    const dots = Array.from({length: 15}).map(() => ({
+
+    const dots = Array.from({ length: 12 }).map(() => ({
       connectionIdx: Math.floor(Math.random() * connections.length),
       progress: Math.random(),
-      speed: 0.002 + Math.random() * 0.004
+      speed: 0.0015 + Math.random() * 0.002,
     }));
 
-    let time = 0;
     let animationFrameId: number;
+    let lastTime = 0;
+    const FPS = 60;
+    const interval = 1000 / FPS;
 
-    const render = () => {
-      time += 16;
+    const render = (timestamp: number) => {
+      animationFrameId = requestAnimationFrame(render);
+      const delta = timestamp - lastTime;
+      if (delta < interval) return; // FPS cap
+      lastTime = timestamp - (delta % interval);
+
+      const time = timestamp * 0.001; // seconds, smooth
+
       ctx.clearRect(0, 0, width, height);
-      
-      // Update nodes positions (Sine wave + magnetic)
+
       nodes.forEach(node => {
-        // Sine wave animation
-        const waveX = Math.sin(time * node.speed + node.phase) * node.amplitude;
-        const waveY = Math.cos(time * node.speed * 0.8 + node.phase) * node.amplitude;
-        
+        const waveX = Math.sin(time * node.speed * 60 + node.phase) * node.amplitude;
+        const waveY = Math.cos(time * node.speed * 48 + node.phase) * node.amplitude;
         let targetX = node.baseX + waveX;
         let targetY = node.baseY + waveY;
-
-        // Magnetic effect
         const dx = mouseX - targetX;
         const dy = mouseY - targetY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist < 150) {
-          const force = (150 - dist) / 150;
-          targetX += (dx * force * 0.1);
-          targetY += (dy * force * 0.1);
+        if (dist < 120) {
+          const force = (120 - dist) / 120;
+          targetX += dx * force * 0.08;
+          targetY += dy * force * 0.08;
         }
-
-        // Lerp towards target
-        node.x += (targetX - node.x) * 0.1;
-        node.y += (targetY - node.y) * 0.1;
+        node.x += (targetX - node.x) * 0.08;
+        node.y += (targetY - node.y) * 0.08;
       });
 
       // Draw connections
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(74, 255, 145, 0.3)"; // --electric opacity 30%
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(74, 255, 145, 0.25)";
       connections.forEach(conn => {
         const p1 = nodes[conn.from];
         const p2 = nodes[conn.to];
@@ -190,8 +180,8 @@ function NodeGraph() {
         ctx.stroke();
       });
 
-      // Draw traveling dots
-      ctx.fillStyle = "#4AFF91"; // --electric
+      // Draw dots
+      ctx.fillStyle = "#4AFF91";
       dots.forEach(dot => {
         dot.progress += dot.speed;
         if (dot.progress > 1) {
@@ -201,45 +191,38 @@ function NodeGraph() {
         const conn = connections[dot.connectionIdx];
         const p1 = nodes[conn.from];
         const p2 = nodes[conn.to];
-        
-        const dotX = p1.x + (p2.x - p1.x) * dot.progress;
-        const dotY = p1.y + (p2.y - p1.y) * dot.progress;
-        
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+        ctx.arc(
+          p1.x + (p2.x - p1.x) * dot.progress,
+          p1.y + (p2.y - p1.y) * dot.progress,
+          2, 0, Math.PI * 2
+        );
         ctx.fill();
       });
 
       // Draw nodes
-      ctx.font = "12px monospace"; // Geist Mono fallback
+      ctx.font = "11px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      
       nodes.forEach(node => {
-        // Node circle
-        ctx.fillStyle = "#EDE8DE"; // --paper
-        ctx.strokeStyle = "#1A1612"; // --ink
-        ctx.lineWidth = 1;
-        
+        ctx.fillStyle = "#EDE8DE";
+        ctx.strokeStyle = "rgba(26,22,18,0.4)";
+        ctx.lineWidth = 0.8;
         ctx.beginPath();
         ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-
-        // Label
-        ctx.fillStyle = "#3D3530"; // --ink-light
-        ctx.fillText(node.label, node.x, node.y - 15);
+        ctx.fillStyle = "#3D3530";
+        ctx.fillText(node.label, node.x, node.y - 14);
       });
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    animationFrameId = requestAnimationFrame(render);
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", resize);
       canvas.removeEventListener("mousemove", handleMouseMove);
-      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
