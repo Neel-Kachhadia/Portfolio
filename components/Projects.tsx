@@ -83,7 +83,7 @@ export default function Projects() {
                   </span>
                   <div className="relative">
                     <span
-                      className="text-xl font-black tracking-tighter text-ink md:text-4xl"
+                      className="text-2xl font-black tracking-tighter text-ink md:text-4xl"
                       style={{ fontFamily: "var(--font-geist-mono)" }}
                     >
                       {proj.name}
@@ -93,8 +93,8 @@ export default function Projects() {
                 </div>
 
                 <div className="flex items-center gap-6">
-                  <div className="hidden font-mono text-xs text-stone md:block">
-                    {proj.stack.split(" · ").slice(0, 3).join(" · ")}...
+                  <div className="font-mono text-[10px] text-stone md:text-xs hidden sm:block max-w-[100px] md:max-w-none truncate md:whitespace-normal">
+                    {proj.stack.split(" · ").slice(0, 2).join(" · ")}...
                   </div>
                   <ArrowRight
                     className={`h-5 w-5 text-ink transition-all duration-300 ${isExpanded ? "rotate-90" : "group-hover:translate-x-2"
@@ -112,39 +112,39 @@ export default function Projects() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="flex flex-col gap-12 px-2 pb-12 pt-4 md:flex-row md:px-4 md:pt-8 md:pb-16">
+                    <div className="flex flex-col gap-8 px-2 pb-12 pt-4 md:flex-row md:gap-12 md:px-4 md:pt-8 md:pb-16">
 
                       {/* Left: System Spec */}
                       <div className="flex w-full flex-col font-mono text-xs md:w-[45%] md:text-sm">
 
-                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                        <div className="mb-4 grid grid-cols-[100px_1fr] md:grid-cols-[130px_1fr] items-start gap-2 md:gap-4">
                           <span className="text-stone flex-shrink-0">SYSTEM TYPE</span>
                           <span className="text-ink">{proj.system_type}</span>
                         </div>
 
-                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                        <div className="mb-4 grid grid-cols-[100px_1fr] md:grid-cols-[130px_1fr] items-start gap-2 md:gap-4">
                           <span className="text-stone flex-shrink-0">ARCHITECTURE</span>
                           <span className="text-ink">{proj.architecture}</span>
                         </div>
 
-                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                        <div className="mb-4 grid grid-cols-[100px_1fr] md:grid-cols-[130px_1fr] items-start gap-2 md:gap-4">
                           <span className="text-stone flex-shrink-0">STACK</span>
                           <span className="text-ink break-words">{proj.stack}</span>
                         </div>
 
                         {proj.latency && (
-                          <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                          <div className="mb-4 grid grid-cols-[100px_1fr] md:grid-cols-[130px_1fr] items-start gap-2 md:gap-4">
                             <span className="text-stone flex-shrink-0">PERFORMANCE</span>
                             <span className="text-ink">{proj.latency}</span>
                           </div>
                         )}
 
-                        <div className="mb-4 grid grid-cols-[130px_1fr] items-start gap-4">
+                        <div className="mb-4 grid grid-cols-[100px_1fr] md:grid-cols-[130px_1fr] items-start gap-2 md:gap-4">
                           <span className="text-stone flex-shrink-0">FEATURE</span>
                           <span className="text-ink">{proj.feature}</span>
                         </div>
 
-                        <div className="mb-12 grid grid-cols-[130px_1fr] items-start gap-4">
+                        <div className="mb-12 grid grid-cols-[100px_1fr] md:grid-cols-[130px_1fr] items-start gap-2 md:gap-4">
                           <span className="text-stone flex-shrink-0">STATUS</span>
                           <span className="flex items-center gap-2 text-ink">
                             <div className="h-2 w-2 rounded-full bg-electric animate-pulse" />

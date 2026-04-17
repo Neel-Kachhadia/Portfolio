@@ -51,22 +51,8 @@ export default function Hero() {
       </div>
 
       {/* Right Column (45%) */}
-      <div className="relative mt-16 flex w-full items-center justify-center md:mt-0 md:h-full md:w-[45%]">
+      <div className="relative mt-16 flex w-full h-[400px] items-center justify-center md:mt-0 md:h-[600px] md:w-[45%]">
         <NodeGraph />
-
-        {/* Mobile Fallback SVG */}
-        <div className="block w-full max-w-sm md:hidden text-ink/20">
-          <svg viewBox="0 0 400 400" className="w-full h-auto">
-            <g stroke="currentColor" strokeWidth="1" fill="none">
-              <circle cx="100" cy="100" r="40" strokeDasharray="4 4" />
-              <circle cx="300" cy="150" r="60" />
-              <circle cx="200" cy="300" r="50" />
-              <path d="M100 100 L 300 150 L 200 300 Z" strokeOpacity="0.2" />
-              <circle cx="200" cy="200" r="4" fill="currentColor" />
-              <circle cx="250" cy="225" r="4" fill="#4AFF91" />
-            </g>
-          </svg>
-        </div>
       </div>
     </section>
   );
@@ -247,7 +233,7 @@ function NodeGraph() {
   return (
     <canvas
       ref={canvasRef}
-      className="hidden h-[600px] w-full md:block"
+      className="h-full w-full"
       style={{ touchAction: "none" }}
     />
   );
