@@ -1,3 +1,7 @@
+@import "@fontsource-variable/geist-mono/wght.css";
+@import "@fontsource/instrument-serif/latin-400.css";
+@import "@fontsource/instrument-serif/latin-400-italic.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,6 +39,8 @@ canvas {
   --paper: #EDE8DE;
   --electric: #4AFF91;
   --grid: rgba(26, 22, 18, 0.06);
+  --font-geist-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-instrument-serif: "Instrument Serif", Georgia, serif;
 }
 
 body {
