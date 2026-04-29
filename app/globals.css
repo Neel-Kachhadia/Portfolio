@@ -38,6 +38,8 @@ canvas {
   --stone: #8C8480;
   --paper: #EDE8DE;
   --electric: #4AFF91;
+  --clay: #B65B3A;
+  --blueprint: #2E5E4E;
   --grid: rgba(26, 22, 18, 0.06);
   --font-geist-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --font-instrument-serif: "Instrument Serif", Georgia, serif;
@@ -45,7 +47,11 @@ canvas {
 
 body {
   color: var(--ink);
-  background: var(--cream);
+  background:
+    linear-gradient(rgba(26, 22, 18, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 22, 18, 0.025) 1px, transparent 1px),
+    var(--cream);
+  background-size: 42px 42px;
   font-family: var(--font-geist-mono), ui-monospace, sans-serif;
   overflow-x: hidden;
 }
@@ -63,5 +69,54 @@ body::after {
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+section {
+  scroll-margin-top: 96px;
+}
+
+button,
+a,
+input,
+textarea {
+  letter-spacing: 0;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--electric);
+  outline-offset: 4px;
+}
+
+::selection {
+  background: var(--electric);
+  color: var(--ink);
+}
+
+.hairline {
+  border-color: rgba(26, 22, 18, 0.1);
+}
+
+.motion-reduced *,
+.motion-reduced *::before,
+.motion-reduced *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.001ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
   }
 }

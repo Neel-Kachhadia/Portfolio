@@ -1,144 +1,182 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useMotionPreference } from "@/components/useMotionPreference";
 
 const timelineEvents = [
-  { date: "Aug 2024", text: "Enrolled DJSCE · B.Tech E&TC · Honours VLSI" },
-  { date: "Oct 2024", text: "Mumbai Hacks — full-stack AI in 24hrs" },
-  { date: "Nov 2024", text: "Built Equity Research Platform" },
-  { date: "Feb 2025", text: "Google Hack2Skill — LLM integration" },
-  { date: "Mar 2025", text: "NeuroFin deployed · sub-200ms Lambda" },
-  { date: "Jun 2025", text: "Mentora — semantic embedding matching" },
-  { date: "2026+", text: "Scaling distributed AI architectures" },
-];
-
-const skills = [
-  { domain: "AI / LLM Systems", tools: "LangGraph · OpenAI API · LangChain" },
-  { domain: "Backend", tools: "FastAPI · Node.js · Express" },
-  { domain: "Frontend", tools: "React · Tailwind · Framer Motion" },
-  { domain: "Cloud", tools: "AWS EC2 · Lambda · S3 · Firebase · GCP" },
-  { domain: "Languages", tools: "Python · TypeScript · JavaScript · C++" },
-  { domain: "Data", tools: "Pandas · NumPy" },
+  {
+    date: "AUG 2024",
+    title: "DJSCE / E&TC",
+    detail:
+      "Entered engineering through electronics and communication, with VLSI as the hardware discipline underneath the AI layer.",
+  },
+  {
+    date: "OCT 2024",
+    title: "MUMBAI HACKS",
+    detail:
+      "Compressed a full-stack AI build into a 24-hour sprint and learned how quickly good architecture matters.",
+  },
+  {
+    date: "NOV 2024",
+    title: "EQUITY RESEARCH PLATFORM",
+    detail:
+      "Built a LangGraph-backed research system around financial data, explainability, and deployable API boundaries.",
+  },
+  {
+    date: "MAR 2025",
+    title: "NEUROFIN",
+    detail:
+      "Moved from single-agent flows into a 12-agent financial intelligence platform with memory, forecasting, risk, and advisory layers.",
+  },
+  {
+    date: "JUN 2025",
+    title: "MENTORA",
+    detail:
+      "Used embeddings to make matching feel less like search and more like intent recognition.",
+  },
+  {
+    date: "2026",
+    title: "PERSONAL OS",
+    detail:
+      "The current direction: systems that are useful, strange, warm, and engineered with enough taste to feel inevitable.",
+  },
 ];
 
 export default function About() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const itemRefs = useRef<HTMLLIElement[]>([]);
+  const { isMotionEnabled } = useMotionPreference();
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      
-      const rect = containerRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      
-      // Calculate how much of the timeline is scrolled
-      // Start drawing when top of container hits middle of screen
-      const start = windowHeight * 0.8;
-      const end = windowHeight * 0.2;
-      
-      const rawProgress = (start - rect.top) / (start - end + rect.height);
-      const clampedProgress = Math.min(Math.max(rawProgress, 0), 1);
-      
-      setScrollProgress(clampedProgress);
-    };
+    if (!lineRef.current) return;
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // init
+    if (!isMotionEnabled) {
+      lineRef.current.style.strokeDashoffset = "0";
+      return;
+    }
 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      gsap.set(lineRef.current, {
+        strokeDasharray: 1,
+        strokeDashoffset: 1,
+      });
+
+      gsap.to(lineRef.current, {
+        strokeDashoffset: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: timelineRef.current,
+          start: "top 72%",
+          end: "bottom 48%",
+          scrub: true,
+        },
+      });
+
+      itemRefs.current.forEach((item) => {
+        gsap.fromTo(
+          item,
+          { opacity: 0.42, y: 16 },
+          {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: item,
+              start: "top 78%",
+              end: "top 52%",
+              scrub: true,
+            },
+          },
+        );
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [isMotionEnabled]);
 
   return (
-    <section id="about" className="w-full px-6 py-32 md:py-48" ref={containerRef}>
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between w-full">
-        
-        {/* Left Column: Timeline */}
-        <div className="w-full relative mb-24 md:mb-0 md:w-[45%] font-mono text-sm leading-relaxed">
-           <div className="absolute left-[11px] top-4 bottom-4 w-px z-[-1]">
-             {/* Using SVG for the animated stroke */}
-             <svg className="w-2 h-full overflow-visible" preserveAspectRatio="none">
-                <path 
-                  ref={lineRef}
-                  d={`M 1 0 V ${timelineEvents.length * 80 + 20}`}
-                  stroke="#4AFF91" 
-                  strokeWidth="2" 
-                  fill="none" 
-                  strokeDasharray="1"
-                  strokeDashoffset={1 - scrollProgress}
-                  pathLength="1"
-                />
-                
-                {/* Background path that is always visible but faint */}
-                <path 
-                  d={`M 1 0 V ${timelineEvents.length * 80 + 20}`}
-                  stroke="rgba(26,22,18,0.1)" 
-                  strokeWidth="1" 
-                  fill="none" 
-                />
-             </svg>
-           </div>
-           
-           <div className="flex flex-col gap-12">
-             {timelineEvents.map((ev, i) => (
-                <div key={i} className="flex items-start gap-6 relative">
-                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-cream border border-ink/20 flex flex-col items-center justify-center relative z-10 mt-[-2px]">
-                      {/* Active dot */}
-                      <div 
-                        className="w-2 h-2 rounded-full bg-electric transition-opacity duration-300" 
-                        style={{ opacity: scrollProgress > (i / timelineEvents.length) ? 1 : 0 }} 
-                      />
-                   </div>
-                   <div className="flex flex-col">
-                      <span className="text-stone font-semibold">{ev.date}</span>
-                      <span className="text-ink">{ev.text}</span>
-                   </div>
+    <section
+      id="about"
+      ref={sectionRef}
+      aria-labelledby="about-title"
+      className="w-full px-6 py-32 md:py-44"
+    >
+      <div className="grid gap-16 md:grid-cols-[0.86fr_1.14fr]">
+        <div className="md:sticky md:top-28 md:self-start">
+          <span className="font-mono text-[11px] uppercase text-stone">
+            ABOUT / HUMAN SYSTEM LOG
+          </span>
+          <h2
+            id="about-title"
+            className="mt-3 font-mono text-5xl font-black leading-none text-ink md:text-7xl"
+          >
+            ABOUT
+          </h2>
+          <p className="mt-8 max-w-xl font-serif text-2xl italic leading-tight text-stone md:text-3xl">
+            Neel builds like an engineer, edits like a designer, and thinks
+            about software as a living system people should want to touch.
+          </p>
+          <p className="mt-7 max-w-xl font-mono text-sm leading-relaxed text-ink-light">
+            He is a second-year E&TC student at DJSCE Mumbai, working across AI
+            agents, financial systems, cloud infrastructure, and interfaces that
+            make technical complexity feel legible.
+          </p>
+        </div>
+
+        <div ref={timelineRef} className="relative pl-10 font-mono">
+          <svg
+            className="absolute left-[11px] top-2 h-[calc(100%-1rem)] w-3 overflow-visible"
+            viewBox="0 0 8 680"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 0 V680"
+              stroke="rgba(26,22,18,0.12)"
+              strokeWidth="1"
+              fill="none"
+            />
+            <path
+              ref={lineRef}
+              d="M4 0 V680"
+              stroke="#4AFF91"
+              strokeWidth="2"
+              fill="none"
+              pathLength="1"
+            />
+          </svg>
+
+          <ol className="flex flex-col gap-12">
+            {timelineEvents.map((event, index) => (
+              <li
+                key={event.title}
+                ref={(node) => {
+                  if (node) itemRefs.current[index] = node;
+                }}
+                className="relative grid gap-3 border-b border-ink/10 pb-9 md:grid-cols-[8rem_1fr]"
+              >
+                <span className="absolute -left-[2.05rem] top-1.5 h-5 w-5 border border-ink/20 bg-cream">
+                  <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-electric" />
+                </span>
+                <time className="text-xs uppercase text-stone">{event.date}</time>
+                <div>
+                  <h3 className="text-sm font-semibold uppercase text-ink">
+                    {event.title}
+                  </h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-light">
+                    {event.detail}
+                  </p>
                 </div>
-             ))}
-           </div>
+              </li>
+            ))}
+          </ol>
         </div>
-
-        {/* Right Column: Skills */}
-        <div className="w-full md:w-[50%] flex flex-col font-mono text-xs md:text-sm">
-           <div className="pb-4 mb-4 border-b border-ink flex">
-              <span className="w-[180px] text-stone">DOMAIN</span>
-              <span className="text-stone">TOOLS</span>
-           </div>
-
-           <motion.div
-             initial="hidden"
-             whileInView="visible"
-             viewport={{ once: true, margin: "-100px" }}
-             variants={{
-               visible: {
-                 transition: { staggerChildren: 0.06 }
-               }
-             }}
-           >
-             {skills.map((skill, i) => (
-               <motion.div 
-                  key={i} 
-                  variants={{
-                    hidden: { opacity: 0, y: 10 },
-                    visible: { opacity: 1, y: 0 }
-                  }}
-                  className="flex py-3 border-b border-ink/5"
-               >
-                  <span className="w-[180px] text-ink font-semibold flex-shrink-0">{skill.domain}</span>
-                  <span className="text-ink-light">{skill.tools}</span>
-               </motion.div>
-             ))}
-           </motion.div>
-
-           <div className="mt-16">
-              <p className="font-serif italic text-2xl text-stone">
-                 &quot;Building systems that reason, adapt, and scale — from Mumbai.&quot;
-              </p>
-           </div>
-        </div>
-
       </div>
     </section>
   );

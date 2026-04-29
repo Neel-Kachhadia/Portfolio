@@ -1,19 +1,66 @@
 import Groq from 'groq-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import type { ChatCompletionMessageParam } from 'groq-sdk/resources/chat/completions';
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+function localResponse(messages: ChatMessage[]) {
+  const prompt = messages.at(-1)?.content?.toLowerCase() ?? "";
+
+  if (/(hello|hi|hey|online|start)/.test(prompt)) {
+    return "System online. Ask me about Neel's stack, projects, or availability.";
+  }
+
+  if (prompt.includes("neurofin")) {
+    return "NeuroFin is Neel's 12-agent financial intelligence platform: deterministic routing, specialist Python agents, Redis memory, Amazon Nova through Bedrock, anomaly detection, forecasting, and advisory layers.";
+  }
+
+  if (prompt.includes("equity") || prompt.includes("research")) {
+    return "The Equity Research Platform routes live market context through LangGraph, serves it through FastAPI, and turns the output into a React dashboard for explainable investment recommendations.";
+  }
+
+  if (prompt.includes("mentora") || prompt.includes("mentor")) {
+    return "Mentora uses OpenAI embeddings to match mentors and mentees by goals, level, and semantic compatibility, then connects them through Firebase realtime chat.";
+  }
+
+  if (prompt.includes("stack") || prompt.includes("skills") || prompt.includes("tools")) {
+    return "Neel works across Python, TypeScript, React, FastAPI, Node.js, LangGraph, OpenAI APIs, Amazon Bedrock, Redis, Firebase, and AWS services including EC2, S3, Lambda, SNS, Cognito, and DocumentDB.";
+  }
+
+  if (prompt.includes("available") || prompt.includes("intern") || prompt.includes("hire")) {
+    return "Availability signal: open to AI engineering internships, systems work, and collaborations. Contact: neel1234kachhadia@gmail.com.";
+  }
+
+  return "This system has local data on Neel's projects, stack, availability, and contact routes. Ask about NeuroFin, Equity Research, Mentora, or AI systems work.";
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
-    const { messages } = await req.json();
+    const body = (await req.json()) as { messages?: Array<Partial<ChatMessage>> };
+    const messages: ChatMessage[] = Array.isArray(body.messages)
+      ? body.messages
+          .filter((message) => typeof message.content === "string")
+          .map((message) => ({
+            role: message.role === "assistant" ? "assistant" : "user",
+            content: message.content ?? "",
+          }))
+      : [];
 
-    const stream = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      stream: true,
-      max_tokens: 400,
-      messages: [
-        {
-          role: 'system',
-          content: `You are an AI terminal embedded in Neel Kachhadia's portfolio. Answer only about Neel. Max 3 sentences. Sound like a technical system, not a chatbot. No filler phrases like "demonstrates", "utilizing", "passionate", "showcases", "expertise".
+    if (!process.env.GROQ_API_KEY) {
+      return new Response(localResponse(messages), {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+    const chatMessages: ChatCompletionMessageParam[] = [
+      {
+        role: 'system',
+        content: `You are an AI terminal embedded in Neel Kachhadia's portfolio. Answer only about Neel. Max 3 sentences. Sound like a technical system, not a chatbot. No filler phrases like "demonstrates", "utilizing", "passionate", "showcases", "expertise".
 
 ABOUT NEEL:
 2nd-year E&TC student at DJSCE Mumbai (2024–2028), Honours VLSI. Builds production AI systems. Open to AI engineering internships and collaborations.
@@ -48,9 +95,18 @@ TONE RULES:
 - Answer like: "NeuroFin's risk_agent scores financial risk 0-100 using Isolation Forest anomaly detection, validated on 3000+ transactions."
 - If greeted say: "System online. Ask me about Neel's stack, projects, or availability."
 - If asked something unrelated to Neel say: "This system only has data on Neel Kachhadia."`,
-        },
-        ...messages,
-      ],
+      },
+      ...messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+    ];
+
+    const stream = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      stream: true,
+      max_tokens: 400,
+      messages: chatMessages,
     });
 
     const encoder = new TextEncoder();
@@ -69,9 +125,6 @@ TONE RULES:
     });
   } catch (error) {
     console.error('Chat API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch response' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch response' }, { status: 500 });
   }
 }

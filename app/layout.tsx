@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SmoothScroll from "@/components/SmoothScroll";
+import ToastHost from "@/components/ToastHost";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({
         <SmoothScroll>
           {children}
         </SmoothScroll>
+        <ToastHost />
       </body>
     </html>
   );

@@ -17,6 +17,8 @@ const config: Config = {
         stone: "var(--stone)",
         paper: "var(--paper)",
         electric: "var(--electric)",
+        clay: "var(--clay)",
+        blueprint: "var(--blueprint)",
         grid: "var(--grid)",
       },
       fontFamily: {

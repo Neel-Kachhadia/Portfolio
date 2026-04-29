@@ -1,16 +1,22 @@
 "use client";
 
+import { useMotionPreference } from "@/components/useMotionPreference";
+
 export default function Marquee() {
+  const { isMotionEnabled } = useMotionPreference();
   const content =
-    "EQUITY RESEARCH PLATFORM · NEUROFIN · MENTORA · LANGRAPH · FASTAPI · AWS LAMBDA · MUMBAI HACKS · GOOGLE HACK2SKILL · ";
+    "TELEMETRY · EQUITY RESEARCH PLATFORM · NEUROFIN · MENTORA · LANGGRAPH · FASTAPI · AWS LAMBDA · BEDROCK · REDIS · SYSTEMS THAT REASON · ";
 
   return (
-    <div className="w-full overflow-hidden bg-paper py-3 border-y border-ink/5">
+    <div
+      className="w-full overflow-hidden border-y border-ink/10 bg-paper py-3"
+      aria-label="Live system telemetry"
+    >
       <div
-        className="flex whitespace-nowrap font-mono text-[11px] uppercase tracking-wider text-stone"
+        className="flex whitespace-nowrap font-mono text-[11px] uppercase text-stone"
         style={{
           width: "max-content",
-          animation: "marquee 30s linear infinite",
+          animation: isMotionEnabled ? "marquee 32s linear infinite" : "none",
         }}
       >
         <span style={{ paddingRight: "4rem" }}>{content}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Command, Search } from "lucide-react";
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -10,7 +11,8 @@ export default function Nav() {
       setScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -21,6 +23,7 @@ export default function Nav() {
 
   return (
     <nav
+      aria-label="Primary navigation"
       className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 py-4 font-mono text-sm uppercase transition-all duration-300 ${
         scrolled ? "backdrop-blur-md" : ""
       }`}
@@ -29,7 +32,7 @@ export default function Nav() {
       <div className="flex items-center space-x-2 text-ink">
         <span className="font-semibold">NK</span>
         <span className="text-stone">/</span>
-        <span className="text-stone">PORTFOLIO</span>
+        <span className="text-stone">NEEL.OS</span>
       </div>
 
       <div className="flex items-center space-x-6">
@@ -38,6 +41,12 @@ export default function Nav() {
           className="hidden text-stone transition-colors hover:text-ink md:block"
         >
           WORK
+        </a>
+        <a
+          href="#capabilities"
+          className="hidden text-stone transition-colors hover:text-ink md:block"
+        >
+          SYSTEM MAP
         </a>
         <a
           href="#about"
@@ -53,10 +62,12 @@ export default function Nav() {
         </a>
         <button
           onClick={openCommandPalette}
-          className="flex items-center gap-2 rounded-full border border-ink/10 bg-paper px-3 py-1.5 text-ink transition-colors hover:border-ink/30"
+          className="flex items-center gap-2 border border-ink/10 bg-paper px-3 py-1.5 text-ink transition-colors hover:border-electric"
           aria-label="Open Command Palette"
         >
-          <span className="text-xs">⌘K</span>
+          <Search className="h-3.5 w-3.5 text-stone" aria-hidden="true" />
+          <span className="text-xs">K</span>
+          <Command className="h-3.5 w-3.5 text-stone" aria-hidden="true" />
         </button>
       </div>
     </nav>
