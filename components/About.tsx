@@ -11,37 +11,37 @@ const timelineEvents = [
     date: "AUG 2024",
     title: "DJSCE / E&TC",
     detail:
-      "Entered engineering through electronics and communication, with VLSI as the hardware discipline underneath the AI layer.",
+      "Started from electronics and communication, where systems are physical before they become abstract.",
   },
   {
     date: "OCT 2024",
     title: "MUMBAI HACKS",
     detail:
-      "Compressed a full-stack AI build into a 24-hour sprint and learned how quickly good architecture matters.",
+      "A 24-hour sprint made architecture feel less academic and more like survival.",
   },
   {
     date: "NOV 2024",
     title: "EQUITY RESEARCH PLATFORM",
     detail:
-      "Built a LangGraph-backed research system around financial data, explainability, and deployable API boundaries.",
+      "Built a LangGraph-backed research system around financial data, explainability, and clean API boundaries.",
   },
   {
     date: "MAR 2025",
     title: "NEUROFIN",
     detail:
-      "Moved from single-agent flows into a 12-agent financial intelligence platform with memory, forecasting, risk, and advisory layers.",
+      "Moved from single-agent flows into a finance OS with memory, forecasting, risk, and advisory layers.",
   },
   {
     date: "JUN 2025",
     title: "MENTORA",
     detail:
-      "Used embeddings to make matching feel less like search and more like intent recognition.",
+      "Used embeddings to make matching feel less like browsing and more like recognition.",
   },
   {
     date: "2026",
     title: "PERSONAL OS",
     detail:
-      "The current direction: systems that are useful, strange, warm, and engineered with enough taste to feel inevitable.",
+      "Current direction: useful systems with enough strangeness, warmth, and engineering taste to feel inevitable.",
   },
 ];
 
@@ -124,13 +124,13 @@ export default function About() {
             </span>
           </h2>
           <p className="mt-10 max-w-xl font-serif text-3xl italic leading-[1.02] text-stone md:text-4xl">
-            Neel builds like an engineer, edits like a designer, and thinks
-            about software as a living system people should want to touch.
+            After the machinery, the record slows down: a student learning how
+            to make intelligent systems feel honest, useful, and alive.
           </p>
           <p className="mt-7 max-w-xl font-mono text-sm leading-relaxed text-ink-light">
-            He is a second-year E&TC student at DJSCE Mumbai, working across AI
-            agents, financial systems, cloud infrastructure, and interfaces that
-            make technical complexity feel legible.
+            Neel is a second-year E&TC student at DJSCE Mumbai, working across
+            AI agents, financial systems, cloud infrastructure, and interfaces
+            that make technical complexity feel legible.
           </p>
         </div>
 
@@ -170,7 +170,7 @@ export default function About() {
                   <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-electric" />
                 </span>
                 <time className="text-xs uppercase text-stone">
-                  {event.date}
+                  log / {event.date}
                 </time>
                 <div>
                   <h3 className="text-sm font-semibold uppercase text-ink">

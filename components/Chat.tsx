@@ -46,7 +46,7 @@ function localResponse(input: string) {
   }
 
   if (prompt.includes("different") || prompt.includes("portfolio") || prompt.includes("design")) {
-    return "This portfolio is built like a personal operating system: editorial typography, live architecture motion, command navigation, system dossiers, and a terminal layer that keeps the work legible.";
+    return "This portfolio is built like a personal operating system: a routed reasoning field, archive-style project dossiers, a live proof map, command navigation, and a final transmission interaction.";
   }
 
   if (prompt.includes("contact") || prompt.includes("email")) {

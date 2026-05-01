@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import SmoothScroll from "@/components/SmoothScroll";
 import ToastHost from "@/components/ToastHost";
 import "./globals.css";
@@ -6,6 +7,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Neel Kachhadia - AI Systems Engineer",
   description: "AI Systems Engineer · Mumbai, India. Building systems that reason, adapt, and scale.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

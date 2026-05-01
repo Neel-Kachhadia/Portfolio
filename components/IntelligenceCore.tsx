@@ -3,106 +3,167 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Billboard, Text } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { useMotionPreference } from "@/components/useMotionPreference";
 
-type CoreNode = {
+type Route = {
+  id: string;
+  points: [number, number, number][];
+  color: string;
+  lane: "logic" | "memory" | "surface" | "human";
+};
+
+type Chamber = {
   id: string;
   label: string;
+  detail: string;
   position: [number, number, number];
-  tier: "model" | "agent" | "data" | "interface";
+  size: [number, number];
+  color: string;
 };
 
-const CORE_NODES: CoreNode[] = [
-  { id: "core", label: "reasoning core", position: [0, 0, 0], tier: "model" },
+const ROUTES: Route[] = [
   {
-    id: "langgraph",
-    label: "LangGraph",
-    position: [-0.82, 0.68, -0.12],
-    tier: "agent",
+    id: "signal-intake",
+    lane: "logic",
+    color: "#4AFF91",
+    points: [
+      [-3.1, -1.24, 0.06],
+      [-2.12, -1.24, 0.08],
+      [-2.12, -0.18, 0.1],
+      [-0.88, -0.18, 0.13],
+      [-0.88, 0.72, 0.1],
+      [0.36, 0.72, 0.11],
+      [0.36, -0.08, 0.1],
+      [1.78, -0.08, 0.12],
+      [1.78, 0.72, 0.1],
+      [3.12, 0.72, 0.08],
+    ],
   },
   {
-    id: "fastapi",
-    label: "FastAPI",
-    position: [0.82, 0.62, 0.06],
-    tier: "interface",
+    id: "critique-loop",
+    lane: "memory",
+    color: "#2E5E4E",
+    points: [
+      [-0.88, -0.18, 0.11],
+      [-0.1, -0.18, 0.14],
+      [-0.1, -1.02, 0.13],
+      [1.04, -1.02, 0.12],
+      [1.04, -0.08, 0.11],
+    ],
   },
   {
-    id: "bedrock",
-    label: "Bedrock",
-    position: [0.28, 1.1, -0.28],
-    tier: "model",
+    id: "human-pass",
+    lane: "human",
+    color: "#B65B3A",
+    points: [
+      [-2.48, 1.02, 0.09],
+      [-1.52, 1.02, 0.11],
+      [-1.52, 0.26, 0.13],
+      [-0.1, 0.26, 0.12],
+      [-0.1, 1.32, 0.1],
+      [1.38, 1.32, 0.11],
+    ],
   },
   {
-    id: "redis",
-    label: "Redis cache",
-    position: [-0.55, -0.86, 0.16],
-    tier: "data",
-  },
-  {
-    id: "s3",
-    label: "S3 artifacts",
-    position: [0.72, -0.84, -0.08],
-    tier: "data",
-  },
-  {
-    id: "react",
-    label: "React UI",
-    position: [0.92, -0.14, 0.22],
-    tier: "interface",
-  },
-  {
-    id: "agents",
-    label: "12 agents",
-    position: [-0.92, -0.12, 0.12],
-    tier: "agent",
-  },
-  {
-    id: "signals",
-    label: "market signals",
-    position: [-0.18, -1.2, -0.2],
-    tier: "data",
+    id: "surface-route",
+    lane: "surface",
+    color: "#1A1612",
+    points: [
+      [0.38, -0.08, 0.1],
+      [0.38, 0.42, 0.12],
+      [2.32, 0.42, 0.11],
+      [2.32, -1.16, 0.1],
+      [3.12, -1.16, 0.08],
+    ],
   },
 ];
 
-const CONNECTIONS: Array<[number, number]> = [
-  [0, 1],
-  [0, 2],
-  [0, 3],
-  [0, 4],
-  [0, 5],
-  [0, 6],
-  [0, 7],
-  [0, 8],
-  [1, 7],
-  [2, 6],
-  [4, 8],
-  [5, 8],
-  [1, 3],
-  [2, 3],
+const CHAMBERS: Chamber[] = [
+  {
+    id: "intake",
+    label: "intake",
+    detail: "raw signal",
+    position: [-2.72, -1.24, 0.12],
+    size: [0.72, 0.36],
+    color: "#F5F0E8",
+  },
+  {
+    id: "reason",
+    label: "reason",
+    detail: "branch / judge",
+    position: [-0.88, -0.18, 0.18],
+    size: [0.94, 0.62],
+    color: "#F5F0E8",
+  },
+  {
+    id: "memory",
+    label: "memory",
+    detail: "case archive",
+    position: [0.52, -1.02, 0.16],
+    size: [1.08, 0.44],
+    color: "#EEE6DA",
+  },
+  {
+    id: "compose",
+    label: "compose",
+    detail: "interface",
+    position: [1.78, -0.08, 0.18],
+    size: [0.98, 0.72],
+    color: "#F5F0E8",
+  },
+  {
+    id: "human",
+    label: "human",
+    detail: "taste layer",
+    position: [-2.48, 1.02, 0.16],
+    size: [0.86, 0.44],
+    color: "#F5F0E8",
+  },
+  {
+    id: "dispatch",
+    label: "dispatch",
+    detail: "live route",
+    position: [3.12, 0.72, 0.16],
+    size: [0.72, 0.42],
+    color: "#EDE8DE",
+  },
 ];
 
-const tierColor: Record<CoreNode["tier"], string> = {
-  model: "#4AFF91",
-  agent: "#1A1612",
-  data: "#2E5E4E",
-  interface: "#B65B3A",
-};
-
-const scratchStart = new THREE.Vector3();
-const scratchEnd = new THREE.Vector3();
-const scratchCurrent = new THREE.Vector3();
-
-function clamp01(value: number) {
-  return Math.max(0, Math.min(1, value));
+function makeGeometry(points: [number, number, number][]) {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setFromPoints(points.map((point) => new THREE.Vector3(...point)));
+  return geometry;
 }
 
-function easeOut(value: number) {
-  return 1 - Math.pow(1 - clamp01(value), 3);
+function interpolateRoute(points: THREE.Vector3[], progress: number) {
+  const lengths: number[] = [];
+  let total = 0;
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const length = points[index].distanceTo(points[index + 1]);
+    lengths.push(length);
+    total += length;
+  }
+
+  let target = (progress % 1) * total;
+
+  for (let index = 0; index < lengths.length; index += 1) {
+    if (target <= lengths[index]) {
+      const segmentProgress = target / lengths[index];
+      return new THREE.Vector3().lerpVectors(
+        points[index],
+        points[index + 1],
+        segmentProgress,
+      );
+    }
+    target -= lengths[index];
+  }
+
+  return points[points.length - 1].clone();
 }
 
-function useElementInView(ref: React.RefObject<HTMLElement>) {
+function useInView(ref: React.RefObject<HTMLElement>) {
   const [isInView, setIsInView] = useState(true);
 
   useEffect(() => {
@@ -111,7 +172,7 @@ function useElementInView(ref: React.RefObject<HTMLElement>) {
 
     const observer = new IntersectionObserver(
       ([entry]) => setIsInView(entry.isIntersecting),
-      { rootMargin: "160px" },
+      { rootMargin: "220px" },
     );
 
     observer.observe(element);
@@ -121,16 +182,16 @@ function useElementInView(ref: React.RefObject<HTMLElement>) {
   return isInView;
 }
 
-function CoreAura({ active }: { active: boolean }) {
+function PaperSkin() {
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
         uniforms: {
           uTime: { value: 0 },
-          uColor: { value: new THREE.Color("#4AFF91") },
+          uInk: { value: new THREE.Color("#1A1612") },
+          uSignal: { value: new THREE.Color("#4AFF91") },
         },
         vertexShader: `
           varying vec2 vUv;
@@ -141,16 +202,22 @@ function CoreAura({ active }: { active: boolean }) {
         `,
         fragmentShader: `
           uniform float uTime;
-          uniform vec3 uColor;
+          uniform vec3 uInk;
+          uniform vec3 uSignal;
           varying vec2 vUv;
 
+          float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+          }
+
           void main() {
-            vec2 center = vUv - 0.5;
-            float radius = length(center);
-            float pulse = 0.55 + 0.45 * sin(uTime * 1.65);
-            float ring = smoothstep(0.38, 0.18, radius) * 0.18;
-            float edge = smoothstep(0.22 + pulse * 0.035, 0.21, abs(radius - 0.25));
-            gl_FragColor = vec4(uColor, ring + edge * 0.12);
+            vec2 grid = abs(fract(vUv * vec2(18.0, 12.0)) - 0.5);
+            float route = smoothstep(0.492, 0.5, max(grid.x, grid.y));
+            float grain = hash(floor(vUv * 180.0 + uTime * 3.0));
+            float glow = smoothstep(0.42, 0.0, distance(vUv, vec2(0.64, 0.46)));
+            vec3 color = mix(uInk, uSignal, glow * 0.36);
+            float alpha = route * 0.055 + grain * 0.026 + glow * 0.06;
+            gl_FragColor = vec4(color, alpha);
           }
         `,
       }),
@@ -158,409 +225,329 @@ function CoreAura({ active }: { active: boolean }) {
   );
 
   useFrame((state) => {
-    if (!active) return;
     material.uniforms.uTime.value = state.clock.elapsedTime;
   });
 
   useEffect(() => () => material.dispose(), [material]);
 
   return (
-    <Billboard position={[0, 0, -0.06]}>
-      <mesh scale={[1.45, 1.45, 1]}>
-        <planeGeometry args={[1, 1, 32, 32]} />
-        <primitive attach="material" object={material} />
-      </mesh>
-    </Billboard>
+    <mesh position={[0, 0, -0.08]} rotation={[0, 0, -0.03]} scale={[7.2, 4.2, 1]}>
+      <planeGeometry args={[1, 1, 1, 1]} />
+      <primitive attach="material" object={material} />
+    </mesh>
   );
 }
 
-function SignalPackets({
-  active,
-  pulse,
-  introComplete,
-}: {
-  active: boolean;
-  pulse: number;
-  introComplete: boolean;
-}) {
-  const packetRefs = useRef<THREE.Mesh[]>([]);
-  const pulseRefs = useRef<THREE.Mesh[]>([]);
-  const pulseToken = useRef(pulse);
-  const pulseStartedAt = useRef(-100);
-  const scratch = useMemo(
-    () => ({
-      start: new THREE.Vector3(),
-      end: new THREE.Vector3(),
-      current: new THREE.Vector3(),
-    }),
+function ChamberPlate({ chamber }: { chamber: Chamber }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const time = state.clock.elapsedTime;
+    groupRef.current.position.z =
+      chamber.position[2] + Math.sin(time * 0.55 + chamber.position[0]) * 0.018;
+  });
+
+  const halfW = chamber.size[0] / 2;
+  const halfH = chamber.size[1] / 2;
+  const outline = useMemo(
+    () =>
+      makeGeometry([
+        [-halfW, -halfH, 0.01],
+        [halfW, -halfH, 0.01],
+        [halfW, halfH, 0.01],
+        [-halfW, halfH, 0.01],
+        [-halfW, -halfH, 0.01],
+      ]),
+    [halfH, halfW],
+  );
+  const outlineMaterial = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: "#1A1612",
+        transparent: true,
+        opacity: 0.22,
+      }),
     [],
   );
-
-  useFrame((state) => {
-    if (!active || !introComplete) return;
-
-    const time = state.clock.elapsedTime;
-
-    packetRefs.current.forEach((packet, index) => {
-      const [from, to] = CONNECTIONS[index % CONNECTIONS.length];
-      scratch.start.fromArray(CORE_NODES[from].position);
-      scratch.end.fromArray(CORE_NODES[to].position);
-      const progress = (time * (0.08 + index * 0.004) + index * 0.137) % 1;
-
-      scratch.current.lerpVectors(scratch.start, scratch.end, progress);
-      packet.position.copy(scratch.current);
-    });
-
-    if (pulseToken.current !== pulse) {
-      pulseToken.current = pulse;
-      pulseStartedAt.current = time;
-    }
-
-    pulseRefs.current.forEach((packet, index) => {
-      const progress = (time - pulseStartedAt.current) * 0.72 - index * 0.055;
-      const visible = progress > 0 && progress < 1;
-
-      packet.visible = visible;
-      if (!visible) return;
-
-      const [from, to] = CONNECTIONS[index];
-      scratch.start.fromArray(CORE_NODES[from].position);
-      scratch.end.fromArray(CORE_NODES[to].position);
-      scratch.current.lerpVectors(scratch.start, scratch.end, progress);
-
-      packet.position.copy(scratch.current);
-      packet.scale.setScalar(1 + Math.sin(progress * Math.PI) * 1.35);
-
-      const material = packet.material as THREE.MeshBasicMaterial;
-      material.opacity = Math.sin(progress * Math.PI) * 0.9;
-    });
-  });
-
-  return (
-    <>
-      {Array.from({ length: 10 }).map((_, index) => (
-        <mesh
-          key={`packet-${index}`}
-          ref={(mesh) => {
-            if (mesh) packetRefs.current[index] = mesh;
-          }}
-        >
-          <sphereGeometry args={[0.026, 16, 16]} />
-          <meshBasicMaterial color="#4AFF91" transparent opacity={0.72} />
-        </mesh>
-      ))}
-
-      {CONNECTIONS.map((_, index) => (
-        <mesh
-          key={`pulse-${index}`}
-          visible={false}
-          ref={(mesh) => {
-            if (mesh) pulseRefs.current[index] = mesh;
-          }}
-        >
-          <sphereGeometry args={[0.032, 18, 18]} />
-          <meshBasicMaterial color="#4AFF91" transparent opacity={0} />
-        </mesh>
-      ))}
-    </>
+  const outlineLine = useMemo(
+    () => new THREE.Line(outline, outlineMaterial),
+    [outline, outlineMaterial],
   );
-}
 
-function DrawnConnection({
-  from,
-  to,
-  index,
-  active,
-  highlighted,
-}: {
-  from: number;
-  to: number;
-  index: number;
-  active: boolean;
-  highlighted: boolean;
-}) {
-  const geometryRef = useRef<THREE.BufferGeometry>(null);
-  const materialRef = useRef<THREE.LineBasicMaterial>(null);
-  const positions = useMemo(() => new Float32Array(6), []);
-
-  useFrame((state) => {
-    if (!active || !geometryRef.current || !materialRef.current) return;
-
-    scratchStart.fromArray(CORE_NODES[from].position);
-    scratchEnd.fromArray(CORE_NODES[to].position);
-
-    const progress = easeOut((state.clock.elapsedTime - index * 0.1) / 0.82);
-    scratchCurrent.lerpVectors(scratchStart, scratchEnd, progress);
-
-    positions[0] = scratchStart.x;
-    positions[1] = scratchStart.y;
-    positions[2] = scratchStart.z;
-    positions[3] = scratchCurrent.x;
-    positions[4] = scratchCurrent.y;
-    positions[5] = scratchCurrent.z;
-
-    const attribute = geometryRef.current.attributes.position;
-    attribute.needsUpdate = true;
-    geometryRef.current.computeBoundingSphere();
-
-    materialRef.current.opacity = highlighted ? 0.72 : 0.1 + progress * 0.26;
-  });
-
-  return (
-    <line>
-      <bufferGeometry ref={geometryRef}>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <lineBasicMaterial
-        ref={materialRef}
-        color={highlighted ? "#4AFF91" : "#2E5E4E"}
-        transparent
-        opacity={0}
-      />
-    </line>
+  useEffect(
+    () => () => {
+      outline.dispose();
+      outlineMaterial.dispose();
+    },
+    [outline, outlineMaterial],
   );
-}
-
-function IntelligenceGraph({
-  active,
-  pulse,
-}: {
-  active: boolean;
-  pulse: number;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const nodeRefs = useRef<THREE.Mesh[]>([]);
-  const [activeNode, setActiveNode] = useState<string | null>("core");
-  const [introComplete, setIntroComplete] = useState(false);
-
-  useFrame((state) => {
-    if (!active || !groupRef.current) return;
-
-    const time = state.clock.elapsedTime;
-    const targetX = -0.08 + state.pointer.y * 0.08;
-    const targetY = state.pointer.x * 0.11 + Math.sin(time * 0.18) * 0.055;
-
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(
-      groupRef.current.rotation.x,
-      targetX,
-      0.035,
-    );
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(
-      groupRef.current.rotation.y,
-      targetY,
-      0.035,
-    );
-
-    nodeRefs.current.forEach((node, index) => {
-      const base = CORE_NODES[index].position;
-      const intro = easeOut((time - 0.32 - index * 0.08) / 0.76);
-      const isCore = CORE_NODES[index].id === "core";
-
-      node.position.y = base[1] + Math.sin(time * 0.75 + index * 0.83) * 0.025;
-      node.scale.setScalar((isCore ? 1 : 0.86) * (0.16 + intro * 0.84));
-    });
-
-    if (!introComplete && time > 2.1) {
-      setIntroComplete(true);
-    }
-
-    state.camera.position.x = THREE.MathUtils.lerp(
-      state.camera.position.x,
-      Math.sin(time * 0.12) * 0.18 + state.pointer.x * 0.16,
-      0.025,
-    );
-    state.camera.position.y = THREE.MathUtils.lerp(
-      state.camera.position.y,
-      0.05 + state.pointer.y * 0.1,
-      0.025,
-    );
-    state.camera.lookAt(0, 0, 0);
-  });
 
   return (
-    <group ref={groupRef}>
-      <CoreAura active={active} />
-
-      {CONNECTIONS.map(([from, to], index) => {
-        const highlighted =
-          activeNode === CORE_NODES[from].id ||
-          activeNode === CORE_NODES[to].id;
-
-        return (
-          <DrawnConnection
-            key={`${from}-${to}-${index}`}
-            from={from}
-            to={to}
-            index={index}
-            active={active}
-            highlighted={highlighted}
-          />
-        );
-      })}
-
-      <SignalPackets
-        active={active}
-        pulse={pulse}
-        introComplete={introComplete}
-      />
-
-      {CORE_NODES.map((node, index) => {
-        const isCore = node.id === "core";
-        const isActive = activeNode === node.id;
-
-        return (
-          <group key={node.id}>
-            <mesh
-              ref={(mesh) => {
-                if (mesh) nodeRefs.current[index] = mesh;
-              }}
-              position={node.position}
-              onPointerOver={(event) => {
-                event.stopPropagation();
-                setActiveNode(node.id);
-              }}
-              onPointerOut={() => setActiveNode("core")}
-            >
-              <sphereGeometry args={[isCore ? 0.12 : 0.062, 32, 32]} />
-              <meshStandardMaterial
-                color={isCore || isActive ? "#4AFF91" : "#F5F0E8"}
-                emissive={isCore ? "#4AFF91" : tierColor[node.tier]}
-                emissiveIntensity={isCore || isActive ? 0.72 : 0.08}
-                metalness={0.04}
-                roughness={0.42}
-              />
-            </mesh>
-
-            <Billboard
-              position={[
-                node.position[0],
-                node.position[1] + (isCore ? 0.25 : 0.18),
-                node.position[2],
-              ]}
-            >
-              <Text
-                color={isCore || isActive ? "#1A1612" : "#3D3530"}
-                fontSize={isCore || isActive ? 0.095 : 0.074}
-                anchorX="center"
-                anchorY="middle"
-                maxWidth={0.95}
-              >
-                {node.label}
-              </Text>
-            </Billboard>
-          </group>
-        );
-      })}
+    <group ref={groupRef} position={chamber.position}>
+      <mesh>
+        <planeGeometry args={chamber.size} />
+        <meshBasicMaterial color={chamber.color} transparent opacity={0.78} />
+      </mesh>
+      <primitive object={outlineLine} />
+      <Billboard position={[0, 0, 0.08]}>
+        <Text
+          color="#1A1612"
+          fontSize={0.1}
+          anchorX="center"
+          anchorY="middle"
+          maxWidth={chamber.size[0] * 0.85}
+        >
+          {chamber.label}
+        </Text>
+        <Text
+          position={[0, -0.15, 0]}
+          color="#8C8480"
+          fontSize={0.055}
+          anchorX="center"
+          anchorY="middle"
+          maxWidth={chamber.size[0] * 0.88}
+        >
+          {chamber.detail}
+        </Text>
+      </Billboard>
     </group>
   );
 }
 
-function StaticIntelligenceCore() {
+function RouteLine({
+  route,
+  active,
+}: {
+  route: Route;
+  active: boolean;
+}) {
+  const geometry = useMemo(() => makeGeometry(route.points), [route.points]);
+  const material = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: route.color,
+        transparent: true,
+        opacity: 0.2,
+      }),
+    [route.color],
+  );
+  const line = useMemo(() => new THREE.Line(geometry, material), [geometry, material]);
+
+  useFrame((state) => {
+    const pulse = 0.55 + Math.sin(state.clock.elapsedTime * 1.8) * 0.08;
+    material.opacity = active ? pulse : 0.18;
+  });
+
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
+
+  return <primitive object={line} />;
+}
+
+function SignalPacket({
+  route,
+  index,
+  burst,
+}: {
+  route: Route;
+  index: number;
+  burst: number;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const vectors = useMemo(
+    () => route.points.map((point) => new THREE.Vector3(...point)),
+    [route.points],
+  );
+  const burstRef = useRef(burst);
+  const burstStart = useRef(0);
+
+  useFrame((state) => {
+    if (!meshRef.current || !materialRef.current) return;
+
+    if (burstRef.current !== burst) {
+      burstRef.current = burst;
+      burstStart.current = state.clock.elapsedTime;
+    }
+
+    const baseProgress = state.clock.elapsedTime * (0.08 + index * 0.012);
+    const burstProgress = (state.clock.elapsedTime - burstStart.current) * 0.82;
+    const useBurst = burstProgress > 0 && burstProgress < 1.18;
+    const progress = useBurst
+      ? burstProgress - index * 0.055
+      : baseProgress + index * 0.19;
+
+    const point = interpolateRoute(vectors, progress);
+    meshRef.current.position.copy(point);
+
+    const burstScale = useBurst ? 1 + Math.sin(Math.max(0, progress) * Math.PI) : 1;
+    meshRef.current.scale.setScalar(0.78 + burstScale * 0.62);
+    materialRef.current.opacity = useBurst ? 0.9 : 0.42;
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[0.035, 16, 16]} />
+      <meshBasicMaterial
+        ref={materialRef}
+        color="#4AFF91"
+        transparent
+        opacity={0.5}
+      />
+    </mesh>
+  );
+}
+
+function MachineScene({ pulse }: { pulse: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [activeRoute, setActiveRoute] = useState("signal-intake");
+
+  useEffect(() => {
+    if (pulse === 0) return;
+    setActiveRoute(ROUTES[pulse % ROUTES.length].id);
+  }, [pulse]);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const time = state.clock.elapsedTime;
+
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(
+      groupRef.current.rotation.x,
+      -0.18 + state.pointer.y * 0.06,
+      0.04,
+    );
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y,
+      0.28 + state.pointer.x * 0.1,
+      0.04,
+    );
+    groupRef.current.rotation.z = Math.sin(time * 0.13) * 0.012 - 0.035;
+  });
+
+  return (
+    <group ref={groupRef} scale={[1.02, 1.02, 1]}>
+      <PaperSkin />
+      {ROUTES.map((route) => (
+        <RouteLine
+          key={route.id}
+          route={route}
+          active={route.id === activeRoute}
+        />
+      ))}
+      {CHAMBERS.map((chamber) => (
+        <ChamberPlate key={chamber.id} chamber={chamber} />
+      ))}
+      {ROUTES.map((route, index) => (
+        <SignalPacket key={route.id} route={route} index={index} burst={pulse} />
+      ))}
+      <mesh position={[0.28, 0.16, 0.3]} scale={[0.42, 0.42, 0.42]}>
+        <octahedronGeometry args={[1, 0]} />
+        <meshBasicMaterial color="#4AFF91" transparent opacity={0.48} />
+      </mesh>
+    </group>
+  );
+}
+
+function StaticMachine() {
   return (
     <svg
-      viewBox="0 0 480 420"
+      viewBox="0 0 760 500"
       className="h-full w-full"
       role="img"
-      aria-label="Static architecture map for Neel OS"
+      aria-label="Static routed reasoning field"
     >
-      <g fill="none" stroke="#4AFF91" strokeOpacity="0.35" strokeWidth="1">
-        <path d="M240 210 116 112" />
-        <path d="M240 210 350 112" />
-        <path d="M240 210 394 214" />
-        <path d="M240 210 338 328" />
-        <path d="M240 210 162 330" />
-        <path d="M240 210 86 218" />
+      <rect x="24" y="34" width="712" height="420" fill="#F5F0E8" opacity="0.6" />
+      <g fill="none" strokeLinecap="square">
+        <path
+          d="M70 342 H218 V236 H352 V160 H505 V235 H690"
+          stroke="#4AFF91"
+          strokeWidth="3"
+          opacity="0.72"
+        />
+        <path
+          d="M352 236 H440 V336 H562 V235"
+          stroke="#2E5E4E"
+          strokeWidth="2"
+          opacity="0.45"
+        />
+        <path
+          d="M138 120 H270 V210 H440 V96 H612"
+          stroke="#B65B3A"
+          strokeWidth="2"
+          opacity="0.42"
+        />
       </g>
       {[
-        ["LangGraph", 116, 112],
-        ["FastAPI", 350, 112],
-        ["React UI", 394, 214],
-        ["S3 artifacts", 338, 328],
-        ["Redis cache", 162, 330],
-        ["12 agents", 86, 218],
+        ["intake", 70, 342],
+        ["reason", 352, 236],
+        ["memory", 440, 336],
+        ["compose", 562, 235],
+        ["human", 138, 120],
+        ["dispatch", 690, 235],
       ].map(([label, x, y]) => (
-        <g key={label as string}>
-          <circle
-            cx={x as number}
-            cy={y as number}
-            r="8"
+        <g key={label}>
+          <rect
+            x={(x as number) - 48}
+            y={(y as number) - 22}
+            width="96"
+            height="44"
             fill="#F5F0E8"
             stroke="#1A1612"
             strokeOpacity="0.28"
           />
           <text
             x={x as number}
-            y={(y as number) - 18}
+            y={(y as number) + 4}
             textAnchor="middle"
-            fill="#3D3530"
+            fill="#1A1612"
             fontFamily="monospace"
-            fontSize="12"
+            fontSize="13"
           >
             {label}
           </text>
         </g>
       ))}
-      <circle cx="240" cy="210" r="20" fill="#4AFF91" fillOpacity="0.78" />
-      <text
-        x="240"
-        y="250"
-        textAnchor="middle"
-        fill="#1A1612"
-        fontFamily="monospace"
-        fontSize="12"
-      >
-        reasoning core
-      </text>
     </svg>
   );
 }
 
 export default function IntelligenceCore({ pulse }: { pulse: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useElementInView(containerRef);
+  const isInView = useInView(containerRef);
   const { isMotionEnabled } = useMotionPreference();
 
   return (
     <div
       ref={containerRef}
       className="relative h-full w-full"
-      aria-label="Interactive 3D intelligence core"
+      aria-label="Interactive routed reasoning field"
     >
       {!isMotionEnabled ? (
-        <StaticIntelligenceCore />
+        <StaticMachine />
       ) : (
         <Canvas
           aria-hidden="true"
-          camera={{ position: [0, 0.08, 3.28], fov: 43 }}
-          dpr={[1, 1.5]}
+          orthographic
+          camera={{ position: [0, 0, 7], zoom: 72 }}
+          dpr={[1, 1.45]}
           frameloop={isInView ? "always" : "demand"}
           gl={{
-            antialias: true,
             alpha: true,
+            antialias: true,
             powerPreference: "high-performance",
           }}
         >
           <Suspense fallback={null}>
-            <ambientLight intensity={1.1} />
-            <directionalLight position={[2, 3, 3]} intensity={0.72} />
-            <IntelligenceGraph active={isInView} pulse={pulse} />
-            <EffectComposer multisampling={0}>
-              <Bloom
-                intensity={0.16}
-                luminanceThreshold={0.62}
-                luminanceSmoothing={0.34}
-                mipmapBlur
-              />
-            </EffectComposer>
+            <MachineScene pulse={pulse} />
           </Suspense>
         </Canvas>
       )}
-      <div className="pointer-events-none absolute bottom-5 left-5 hidden font-mono text-[10px] uppercase text-stone md:block">
-        CORE_STATUS: ONLINE / GRAPH_ASSEMBLY: SEQUENTIAL
-      </div>
-      <div className="pointer-events-none absolute right-5 top-5 hidden max-w-[11rem] text-right font-mono text-[10px] uppercase leading-relaxed text-stone md:block">
-        Hover nodes to activate system channels. Pulse route armed.
-      </div>
     </div>
   );
 }

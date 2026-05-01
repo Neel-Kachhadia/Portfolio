@@ -164,6 +164,14 @@ export default function CommandPalette() {
             icon: BriefcaseBusiness,
             action: () => openProject("mentora"),
           },
+          {
+            id: "lab",
+            label: "Open NEEL.OS Lab dossier",
+            detail: "Portfolio operating layer",
+            keywords: ["portfolio", "motion", "three", "gsap"],
+            icon: BriefcaseBusiness,
+            action: () => openProject("lab"),
+          },
         ],
       },
       {

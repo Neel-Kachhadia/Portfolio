@@ -1,162 +1,195 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Brackets, Fingerprint } from "lucide-react";
 import { motion } from "motion/react";
-import { Brackets, Fingerprint, RadioTower } from "lucide-react";
 import { useMotionPreference } from "@/components/useMotionPreference";
 
-const identitySignals = [
-  ["FORMAT", "personal AI operating system"],
-  ["VOICE", "engineering precision with human contrast"],
-  ["MATERIAL", "cream paper, black ink, electric signal"],
-  ["METHOD", "systems thinking, product taste, deployed code"],
+const fragments = [
+  "LANGGRAPH.NODE",
+  "FASTAPI.BOUNDARY",
+  "REDIS.MEMORY",
+  "EMBEDDING.MATCH",
+  "FINANCE.SIGNAL",
+  "REACT.SURFACE",
+  "HUMAN.JUDGMENT",
+  "SYSTEM.TASTE",
 ];
 
-const calibration = [
-  "Agentic finance systems",
-  "Semantic matching engines",
-  "Realtime intelligence surfaces",
-  "Cloud-backed product infrastructure",
+const principles = [
+  ["not a theme", "a working surface for intelligent products"],
+  ["not a demo", "deployed systems with reasoning traces"],
+  ["not complexity", "clarity after the machinery has done its work"],
 ];
 
 export default function IdentityReveal() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const peelRef = useRef<HTMLDivElement>(null);
+  const manifestoRefs = useRef<HTMLSpanElement[]>([]);
+  const stripRefs = useRef<HTMLDivElement[]>([]);
   const { isMotionEnabled } = useMotionPreference();
+
+  useEffect(() => {
+    if (!isMotionEnabled) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      gsap.set(peelRef.current, { clipPath: "inset(0 0 0 0)" });
+      gsap.set(manifestoRefs.current, { yPercent: 110, rotate: 2 });
+      gsap.set(stripRefs.current, { xPercent: -12, opacity: 0.42 });
+
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 72%",
+            end: "center 42%",
+            scrub: 0.7,
+          },
+        })
+        .to(stripRefs.current, {
+          xPercent: 0,
+          opacity: 0.88,
+          stagger: 0.04,
+          ease: "none",
+        })
+        .to(
+          peelRef.current,
+          {
+            clipPath: "inset(0 0 0 86%)",
+            ease: "none",
+          },
+          0.12,
+        )
+        .to(
+          manifestoRefs.current,
+          {
+            yPercent: 0,
+            rotate: 0,
+            stagger: 0.08,
+            ease: "power3.out",
+          },
+          0.2,
+        );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [isMotionEnabled]);
 
   return (
     <section
       id="identity"
+      ref={sectionRef}
       aria-labelledby="identity-title"
-      className="relative w-full overflow-hidden border-y border-ink/10 px-6 py-28 md:px-8 md:py-40"
+      className="relative w-full overflow-hidden border-y border-ink/10 px-5 py-28 md:px-8 md:py-44"
     >
-      <div className="pointer-events-none absolute -right-8 top-6 font-mono text-[9rem] font-black leading-none text-ink/[0.035] md:text-[18rem]">
-        02
-      </div>
-
-      <div className="mx-auto grid w-full max-w-[1500px] gap-14 md:grid-cols-[0.82fr_1.18fr] md:items-end">
-        <div className="relative">
-          <span className="flex items-center gap-2 font-mono text-[11px] uppercase text-stone">
-            <Fingerprint className="h-4 w-4 text-electric" aria-hidden="true" />
-            02 / IDENTITY_REVEAL
-          </span>
-
-          <h2
-            id="identity-title"
-            className="mt-8 font-mono text-[4rem] font-black uppercase leading-[0.78] text-ink sm:text-[6rem] md:text-[7.5rem]"
+      <div className="mx-auto grid w-full max-w-[1500px] gap-12 md:grid-cols-[0.92fr_1.08fr] md:items-center">
+        <div className="relative min-h-[390px] overflow-hidden border-y border-ink/10 py-6 md:min-h-[560px] md:border-y-0 md:py-0">
+          <div
+            ref={peelRef}
+            className="absolute inset-0 z-10 bg-ink text-cream"
           >
-            <motion.span
-              className="block overflow-hidden pb-2"
-              initial={
-                isMotionEnabled ? { clipPath: "inset(0 100% 0 0)" } : false
-              }
-              whileInView={
-                isMotionEnabled ? { clipPath: "inset(0 0% 0 0)" } : undefined
-              }
-              viewport={{ once: true, margin: "-20%" }}
-              transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
-            >
-              IDENTITY
-            </motion.span>
-            <motion.span
-              className="ml-[18vw] block overflow-hidden pb-2 font-serif font-normal italic leading-[0.82] text-stone md:ml-24"
-              initial={
-                isMotionEnabled ? { clipPath: "inset(0 100% 0 0)" } : false
-              }
-              whileInView={
-                isMotionEnabled ? { clipPath: "inset(0 0% 0 0)" } : undefined
-              }
-              viewport={{ once: true, margin: "-20%" }}
-              transition={{
-                duration: 0.72,
-                delay: 0.12,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-            >
-              reveal
-            </motion.span>
-          </h2>
+            <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(245,240,232,0.12)_1px,transparent_1px)] [background-size:100%_40px]" />
+            <div className="relative flex h-full flex-col justify-between p-5 font-mono text-[11px] uppercase leading-relaxed text-stone md:p-8">
+              <div className="flex items-center gap-2 text-cream">
+                <Brackets className="h-4 w-4 text-electric" aria-hidden="true" />
+                system language
+              </div>
+              <div className="grid gap-3">
+                {fragments.map((item, index) => (
+                  <div
+                    key={item}
+                    ref={(node) => {
+                      if (node) stripRefs.current[index] = node;
+                    }}
+                    className="flex items-center justify-between border-t border-cream/10 pt-3"
+                  >
+                    <span>{item}</span>
+                    <span className="text-electric">0{index + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-          <p className="mt-10 max-w-xl font-serif text-3xl italic leading-[1.02] text-stone md:text-4xl">
-            The interface is restrained because the systems underneath are not.
-          </p>
+          <div className="relative z-0 flex min-h-[390px] flex-col justify-end md:min-h-[560px]">
+            <span className="mb-6 flex items-center gap-2 font-mono text-[11px] uppercase text-stone">
+              <Fingerprint className="h-4 w-4 text-electric" aria-hidden="true" />
+              identity_reveal
+            </span>
+            <h2
+              id="identity-title"
+              className="font-mono text-[3.9rem] font-black uppercase leading-[0.78] text-ink sm:text-[6rem] md:text-[8.6rem]"
+            >
+              <span className="block overflow-hidden pb-2">
+                <span
+                  ref={(node) => {
+                    if (node) manifestoRefs.current[0] = node;
+                  }}
+                  className="block"
+                >
+                  FROM
+                </span>
+              </span>
+              <span className="ml-[18vw] block overflow-hidden pb-2 font-serif font-normal italic text-stone md:ml-28">
+                <span
+                  ref={(node) => {
+                    if (node) manifestoRefs.current[1] = node;
+                  }}
+                  className="block"
+                >
+                  syntax
+                </span>
+              </span>
+              <span className="block overflow-hidden pb-2">
+                <span
+                  ref={(node) => {
+                    if (node) manifestoRefs.current[2] = node;
+                  }}
+                  className="block"
+                >
+                  TO SENSE
+                </span>
+              </span>
+            </h2>
+          </div>
         </div>
 
-        <div className="grid gap-8">
-          <div className="grid gap-5 border-y border-ink/10 py-6 md:grid-cols-[0.82fr_1.18fr]">
-            <div className="font-mono text-[11px] uppercase leading-relaxed text-stone">
-              <Brackets
-                className="mb-4 h-5 w-5 text-electric"
-                aria-hidden="true"
-              />
-              NEEL KACHHADIA
-              <br />
-              AI systems engineer
-              <br />
-              Mumbai, India
-            </div>
-            <p className="font-mono text-sm leading-relaxed text-ink-light md:text-base">
-              NEEL.OS is built as a personal control surface: part portfolio,
-              part architecture map, part living case file. The work moves
-              between model behavior, backend reliability, financial logic, and
-              interface systems that make complexity visible.
+        <div className="grid gap-9">
+          <motion.p
+            initial={isMotionEnabled ? { opacity: 0, y: 18 } : false}
+            whileInView={isMotionEnabled ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true, margin: "-18%" }}
+            transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-3xl font-serif text-3xl italic leading-[1.02] text-stone md:text-5xl"
+          >
+            NEEL.OS is a case-file interface for someone who builds intelligent
+            systems, then edits them until humans can feel the logic.
+          </motion.p>
+
+          <div className="grid gap-4 font-mono text-sm leading-relaxed text-ink-light md:text-base">
+            <p>
+              The site stops explaining itself as a concept and starts behaving
+              like one: routes activate, files unfold, proofs attach to skills,
+              and the final contact becomes a transmission.
+            </p>
+            <p>
+              The voice stays premium and editorial, but the motion is
+              functional: language peels back, machine layers recompose, and the
+              human layer slows the operating system down.
             </p>
           </div>
 
-          <div className="grid gap-4 font-mono text-xs md:grid-cols-2">
-            {identitySignals.map(([label, value], index) => (
-              <motion.div
-                key={label}
-                initial={
-                  isMotionEnabled
-                    ? { x: index % 2 === 0 ? -28 : 28, opacity: 0.35 }
-                    : false
-                }
-                whileInView={isMotionEnabled ? { x: 0, opacity: 1 } : undefined}
-                viewport={{ once: true, margin: "-18%" }}
-                transition={{
-                  duration: 0.5,
-                  delay: index * 0.045,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="grid grid-cols-[6.5rem_1fr] gap-4 border-t border-ink/10 pt-4"
-              >
-                <span className="text-stone">{label}</span>
-                <span className="text-ink">{value}</span>
-              </motion.div>
+          <div className="grid gap-3 border-y border-ink/10 py-5 font-mono text-xs md:grid-cols-3">
+            {principles.map(([label, detail]) => (
+              <div key={label} className="grid gap-3 border-ink/10 md:border-l md:pl-4">
+                <span className="uppercase text-stone">{label}</span>
+                <span className="leading-relaxed text-ink">{detail}</span>
+              </div>
             ))}
-          </div>
-
-          <div className="relative overflow-hidden border-y border-ink/10 py-5">
-            <div className="mb-4 flex items-center justify-between font-mono text-[10px] uppercase text-stone">
-              <span className="flex items-center gap-2">
-                <RadioTower
-                  className="h-4 w-4 text-electric"
-                  aria-hidden="true"
-                />
-                Calibration loop
-              </span>
-              <span>4 active channels</span>
-            </div>
-            <div className="grid gap-3 md:grid-cols-4">
-              {calibration.map((item, index) => (
-                <motion.div
-                  key={item}
-                  initial={
-                    isMotionEnabled ? { scaleX: 0.2, opacity: 0 } : false
-                  }
-                  whileInView={
-                    isMotionEnabled ? { scaleX: 1, opacity: 1 } : undefined
-                  }
-                  viewport={{ once: true, margin: "-20%" }}
-                  transition={{
-                    duration: 0.42,
-                    delay: index * 0.08,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="origin-left border-l border-electric bg-paper/50 px-3 py-3 font-mono text-[11px] uppercase leading-relaxed text-ink"
-                >
-                  {item}
-                </motion.div>
-              ))}
-            </div>
           </div>
         </div>
       </div>

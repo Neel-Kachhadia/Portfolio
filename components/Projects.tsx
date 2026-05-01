@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowRight,
   ArrowUpRight,
-  CircuitBoard,
   FileText,
+  FolderOpen,
   LockKeyhole,
-  ScanLine,
 } from "lucide-react";
 import { useMotionPreference } from "@/components/useMotionPreference";
 
@@ -16,15 +16,16 @@ type Project = {
   id: string;
   slug: string;
   name: string;
+  short: string;
   systemType: string;
   role: string;
   architecture: string;
-  flow: string[];
-  stack: string[];
   impact: string;
-  status: string;
+  stack: string[];
   year: string;
+  status: string;
   source: string;
+  accent: string;
 };
 
 const projects: Project[] = [
@@ -32,47 +33,30 @@ const projects: Project[] = [
     id: "01",
     slug: "equity",
     name: "Equity Research Platform",
+    short: "Market reasoning routes with ranked outputs.",
     systemType: "Stateful agentic research pipeline",
     role: "Full-stack AI systems engineer",
     architecture:
-      "Live market data -> LangGraph reasoning loop -> FastAPI stateless API -> React intelligence dashboard",
-    flow: [
-      "Market signal",
-      "Context retrieval",
-      "LangGraph loop",
-      "API boundary",
-      "Decision dashboard",
-    ],
-    stack: [
-      "React",
-      "FastAPI",
-      "LangGraph",
-      "Python",
-      "Tailwind",
-      "AWS EC2",
-      "S3",
-    ],
+      "Market data intake -> LangGraph research loop -> FastAPI boundary -> React decision surface",
     impact:
-      "Turns noisy market context into explainable investment recommendations through a horizontally scalable research flow.",
-    status: "DEPLOYED",
+      "Turns noisy market context into explainable investment recommendations through a scalable research flow.",
+    stack: ["React", "FastAPI", "LangGraph", "Python", "Tailwind", "AWS EC2", "S3"],
     year: "2024-2026",
+    status: "DEPLOYED",
     source: "github.com/Neel-Kachhadia/Equity-Research-Platform",
+    accent: "#4AFF91",
   },
   {
     id: "02",
     slug: "neurofin",
     name: "NeuroFin",
+    short: "Finance OS with agents, memory, forecasting.",
     systemType: "12-agent financial intelligence operating layer",
     role: "Architecture, agent design, backend systems, product interface",
     architecture:
-      "Deterministic router -> specialist Python agents -> Redis memory -> Amazon Nova via Bedrock -> explainable finance actions",
-    flow: [
-      "Bank data",
-      "Deterministic router",
-      "Specialist agents",
-      "Memory layer",
-      "Finance action",
-    ],
+      "Deterministic router -> specialist Python agents -> Redis memory -> Amazon Nova via Bedrock -> finance actions",
+    impact:
+      "Scores risk, forecasts cash flow, detects anomalies across 3000+ transactions, and converts bank data into decisions.",
     stack: [
       "React",
       "MERN",
@@ -84,45 +68,60 @@ const projects: Project[] = [
       "S3",
       "SNS",
     ],
-    impact:
-      "Scores risk, forecasts cash flow, detects anomalies across 3000+ transactions, and converts bank data into personal finance decisions.",
-    status: "DEPLOYED",
     year: "2025-2026",
+    status: "DEPLOYED",
     source: "github.com/Neel-Kachhadia/NeuroFin",
+    accent: "#2E5E4E",
   },
   {
     id: "03",
     slug: "mentora",
     name: "Mentora",
+    short: "Semantic human matching with warmer logic.",
     systemType: "Semantic mentor-mentee matching engine",
     role: "Full-stack engineer, AI matching layer, realtime product flow",
     architecture:
       "OpenAI embeddings -> compatibility scoring -> Firebase realtime chat -> personalized learning paths",
-    flow: [
-      "Profile intent",
-      "Embeddings",
-      "Compatibility score",
-      "Realtime chat",
-      "Learning path",
-    ],
-    stack: ["React", "Node.js", "Express", "Firebase", "OpenAI API"],
     impact:
-      "Moves matching away from profile browsing and toward intent, goals, level, and semantic compatibility.",
-    status: "DEPLOYED",
+      "Moves matching away from browsing and toward intent, goals, level, and semantic compatibility.",
+    stack: ["React", "Node.js", "Express", "Firebase", "OpenAI API"],
     year: "2025-2026",
+    status: "DEPLOYED",
     source: "github.com/Neel-Kachhadia/Mentore-Mentee-Platform",
+    accent: "#B65B3A",
+  },
+  {
+    id: "04",
+    slug: "lab",
+    name: "NEEL.OS Lab",
+    short: "R&D surface for this portfolio system.",
+    systemType: "Interactive portfolio operating layer",
+    role: "Creative engineering, motion systems, systems storytelling",
+    architecture:
+      "GSAP scene control -> Motion interface state -> R3F reasoning field -> Next.js deployable shell",
+    impact:
+      "Reframes a portfolio as a working archive where interactions prove taste, code, and systems thinking at once.",
+    stack: ["Next.js", "TypeScript", "GSAP", "Motion", "React Three Fiber", "Three.js"],
+    year: "2026",
+    status: "LIVE EXPERIMENT",
+    source: "github.com/Neel-Kachhadia",
+    accent: "#1A1612",
   },
 ];
 
-const dossierRows: Array<[string, keyof Project]> = [
+const rows: Array<[string, keyof Project]> = [
   ["ROLE", "role"],
-  ["ARCHITECTURE", "architecture"],
+  ["TYPE", "systemType"],
+  ["ARCH", "architecture"],
   ["IMPACT", "impact"],
 ];
 
 export default function Projects() {
-  const [expandedId, setExpandedId] = useState<string | null>("02");
+  const [expandedId, setExpandedId] = useState("02");
+  const panelRef = useRef<HTMLDivElement>(null);
   const { isMotionEnabled } = useMotionPreference();
+  const activeProject =
+    projects.find((project) => project.id === expandedId) ?? projects[1];
 
   useEffect(() => {
     const handleOpenProject = (event: Event) => {
@@ -135,47 +134,65 @@ export default function Projects() {
     return () => window.removeEventListener("open-project", handleOpenProject);
   }, []);
 
+  useEffect(() => {
+    if (!panelRef.current || !isMotionEnabled) return;
+
+    const paths = Array.from(
+      panelRef.current.querySelectorAll<SVGPathElement>(".blueprint-path"),
+    );
+    const rowsToReveal = Array.from(
+      panelRef.current.querySelectorAll<HTMLElement>(".dossier-row"),
+    );
+
+    gsap.set(paths, { strokeDasharray: 1, strokeDashoffset: 1 });
+    gsap.set(rowsToReveal, { opacity: 0, y: 12 });
+    gsap
+      .timeline({ defaults: { ease: "power3.out" } })
+      .to(paths, { strokeDashoffset: 0, duration: 0.9, stagger: 0.07 }, 0)
+      .to(rowsToReveal, { opacity: 1, y: 0, duration: 0.42, stagger: 0.045 }, 0.08);
+  }, [expandedId, isMotionEnabled]);
+
   return (
     <section
       id="work"
       aria-labelledby="work-title"
-      className="w-full px-6 py-32 md:px-8 md:py-44"
+      className="relative w-full overflow-hidden px-5 py-28 md:px-8 md:py-44"
     >
+      <div className="absolute inset-x-0 top-0 h-px bg-ink/10" />
       <div className="mx-auto w-full max-w-[1500px]">
-        <div className="mb-14 grid gap-8 border-b border-ink/10 pb-8 md:grid-cols-[1.05fr_0.95fr] md:items-end">
+        <div className="mb-14 grid gap-9 md:grid-cols-[0.84fr_1.16fr] md:items-end">
           <div>
             <span className="flex items-center gap-2 font-mono text-[11px] uppercase text-stone">
-              <LockKeyhole
-                className="h-4 w-4 text-electric"
-                aria-hidden="true"
-              />
-              03 / ACTIVE_SYSTEMS / DOSSIERS
+              <LockKeyhole className="h-4 w-4 text-electric" aria-hidden="true" />
+              active_systems / dossier archive
             </span>
             <h2
               id="work-title"
-              className="mt-5 font-mono text-[4rem] font-black uppercase leading-[0.78] text-ink sm:text-[5.8rem] md:text-[8.5rem]"
+              className="mt-5 font-mono text-[3.8rem] font-black uppercase leading-[0.78] text-ink sm:text-[5.8rem] md:text-[9rem]"
             >
-              ACTIVE
-              <span className="ml-[12vw] block font-serif font-normal italic text-stone md:ml-28">
-                systems
+              CASE
+              <span className="ml-[18vw] block font-serif font-normal italic text-stone md:ml-32">
+                files
               </span>
             </h2>
           </div>
-          <p className="max-w-2xl font-serif text-3xl italic leading-[1.02] text-stone md:justify-self-end md:text-4xl">
-            Each project opens as an engineering file: architecture, signal
-            flow, impact, and the machine shape underneath.
+          <p className="max-w-3xl font-serif text-3xl italic leading-[1.02] text-stone md:justify-self-end md:text-5xl">
+            Opening a project should feel like pulling a drawer from the archive
+            and watching the blueprint spread across the table.
           </p>
         </div>
 
-        <div className="mb-3 hidden grid-cols-[4.5rem_1fr_9rem_13rem_2rem] gap-4 border-b border-ink/10 pb-3 font-mono text-[10px] uppercase text-stone md:grid">
-          <span>File</span>
-          <span>System</span>
-          <span>Status</span>
-          <span>Type</span>
-          <span />
+        <div
+          className="mb-5 grid gap-4 border-y border-ink/10 py-4 font-mono text-[10px] uppercase text-stone md:grid-cols-[8rem_1fr_13rem_10rem]"
+          style={{ borderColor: `${activeProject.accent}44` }}
+        >
+          <span>active file</span>
+          <span className="text-ink">{activeProject.name}</span>
+          <span>{activeProject.systemType}</span>
+          <span>{activeProject.status}</span>
         </div>
 
-        <div className="flex w-full flex-col border-t border-ink/10">
+        <div className="border-y border-ink/10">
           {projects.map((project) => {
             const isExpanded = expandedId === project.id;
 
@@ -183,43 +200,37 @@ export default function Projects() {
               <article
                 id={`project-${project.slug}`}
                 key={project.id}
-                className={`group relative flex w-full flex-col border-b border-ink/10 transition-colors duration-300 ${
-                  isExpanded ? "bg-paper/70" : "hover:bg-paper/45"
+                className={`relative border-b border-ink/10 last:border-b-0 ${
+                  isExpanded ? "bg-paper/55" : ""
                 }`}
               >
-                {isExpanded && (
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-electric" />
-                )}
                 <button
                   type="button"
-                  onClick={() => setExpandedId(isExpanded ? null : project.id)}
+                  onClick={() => setExpandedId(project.id)}
                   aria-expanded={isExpanded}
                   aria-controls={`project-panel-${project.slug}`}
-                  className="grid w-full grid-cols-[3rem_1fr_auto] items-center gap-4 px-2 py-7 text-left md:grid-cols-[4.5rem_1fr_9rem_13rem_2rem] md:px-4 md:py-9"
+                  className="group grid w-full grid-cols-[3rem_1fr_auto] items-center gap-4 py-7 text-left md:grid-cols-[6rem_1fr_14rem_12rem_2rem] md:px-2 md:py-9"
                 >
-                  <span className="font-mono text-xs text-stone">
-                    {project.id}
-                  </span>
-                  <span className="flex min-w-0 flex-col gap-2">
-                    <span className="font-mono text-3xl font-black uppercase leading-none text-ink md:text-5xl">
+                  <span className="font-mono text-xs text-stone">{project.id}</span>
+                  <span className="grid gap-2">
+                    <span className="font-mono text-2xl font-black uppercase leading-none text-ink sm:text-3xl md:text-5xl">
                       {project.name}
                     </span>
-                    <span className="font-mono text-[11px] uppercase leading-relaxed text-stone md:hidden">
-                      {project.systemType}
+                    <span className="max-w-2xl font-serif text-xl italic leading-tight text-stone md:hidden">
+                      {project.short}
                     </span>
                   </span>
-                  <span className="hidden font-mono text-[10px] uppercase text-ink md:flex md:flex-col md:gap-1">
-                    <span>{project.status}</span>
-                    <span className="text-stone">{project.year}</span>
-                  </span>
                   <span className="hidden font-mono text-[11px] uppercase leading-relaxed text-stone md:block">
-                    {project.systemType}
+                    {project.short}
+                  </span>
+                  <span className="hidden font-mono text-[10px] uppercase text-ink md:block">
+                    {project.year}
+                    <br />
+                    <span className="text-stone">{project.status}</span>
                   </span>
                   <ArrowRight
-                    className={`h-5 w-5 justify-self-end text-ink transition-transform duration-300 ${
-                      isExpanded
-                        ? "rotate-90 text-electric"
-                        : "group-hover:translate-x-1"
+                    className={`h-5 w-5 justify-self-end transition-transform ${
+                      isExpanded ? "rotate-90 text-electric" : "text-ink group-hover:translate-x-1"
                     }`}
                     aria-hidden="true"
                   />
@@ -229,57 +240,35 @@ export default function Projects() {
                   {isExpanded && (
                     <motion.div
                       id={`project-panel-${project.slug}`}
-                      initial={{
-                        height: 0,
-                        opacity: 0,
-                        clipPath: "inset(0 0 100% 0)",
-                      }}
-                      animate={{
-                        height: "auto",
-                        opacity: 1,
-                        clipPath: "inset(0 0 0% 0)",
-                      }}
-                      exit={{
-                        height: 0,
-                        opacity: 0,
-                        clipPath: "inset(0 0 100% 0)",
-                      }}
+                      ref={panelRef}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
                       transition={{
-                        duration: isMotionEnabled ? 0.42 : 0,
+                        duration: isMotionEnabled ? 0.48 : 0,
                         ease: [0.16, 1, 0.3, 1],
                       }}
                       className="overflow-hidden"
                     >
-                      <div className="grid gap-10 px-2 pb-12 pt-3 md:grid-cols-[0.95fr_1.05fr] md:px-4 md:pb-16 md:pt-6">
-                        <div className="font-mono text-xs md:text-sm">
-                          <div className="mb-7 flex items-center justify-between border-b border-ink/10 pb-3 text-[11px] uppercase text-stone">
-                            <span className="flex items-center gap-3">
-                              <FileText
-                                className="h-4 w-4 text-electric"
-                                aria-hidden="true"
-                              />
-                              Case file / {project.slug}
+                      <div className="grid gap-10 pb-12 md:grid-cols-[0.82fr_1.18fr] md:gap-14 md:pb-16">
+                        <div className="relative border-t border-ink/10 pt-6 font-mono text-xs">
+                          <div
+                            className="absolute left-0 top-0 h-px w-24"
+                            style={{ background: project.accent }}
+                          />
+                          <div className="mb-6 flex items-center justify-between text-[10px] uppercase text-stone">
+                            <span className="flex items-center gap-2">
+                              <FolderOpen className="h-4 w-4 text-electric" aria-hidden="true" />
+                              archive drawer / {project.slug}
                             </span>
-                            <span>{project.year}</span>
+                            <span>{project.status}</span>
                           </div>
 
-                          <dl className="flex flex-col">
-                            <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[9rem_1fr]">
-                              <dt className="text-stone">TITLE</dt>
-                              <dd className="leading-relaxed text-ink">
-                                {project.name}
-                              </dd>
-                            </div>
-                            <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[9rem_1fr]">
-                              <dt className="text-stone">SYSTEM TYPE</dt>
-                              <dd className="leading-relaxed text-ink">
-                                {project.systemType}
-                              </dd>
-                            </div>
-                            {dossierRows.map(([label, key]) => (
+                          <dl>
+                            {rows.map(([label, key]) => (
                               <div
                                 key={label}
-                                className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[9rem_1fr]"
+                                className="dossier-row grid grid-cols-[5.2rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[7rem_1fr]"
                               >
                                 <dt className="text-stone">{label}</dt>
                                 <dd className="leading-relaxed text-ink">
@@ -287,34 +276,14 @@ export default function Projects() {
                                 </dd>
                               </div>
                             ))}
-                            <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[9rem_1fr]">
-                              <dt className="text-stone">SYSTEM FLOW</dt>
-                              <dd>
-                                <FlowTrace steps={project.flow} />
-                              </dd>
-                            </div>
-                            <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[9rem_1fr]">
+                            <div className="dossier-row grid grid-cols-[5.2rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[7rem_1fr]">
                               <dt className="text-stone">STACK</dt>
                               <dd className="flex flex-wrap gap-x-3 gap-y-2 text-ink">
                                 {project.stack.map((item) => (
-                                  <span
-                                    key={item}
-                                    className="border-b border-ink/15"
-                                  >
+                                  <span key={item} className="border-b border-ink/15">
                                     {item}
                                   </span>
                                 ))}
-                              </dd>
-                            </div>
-                            <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-ink/10 py-4 md:grid-cols-[9rem_1fr]">
-                              <dt className="text-stone">STATE</dt>
-                              <dd className="flex flex-wrap gap-3 text-ink">
-                                <span className="border border-electric/70 bg-electric/20 px-2 py-1 text-[10px] uppercase">
-                                  {project.status}
-                                </span>
-                                <span className="border border-ink/10 bg-cream px-2 py-1 text-[10px] uppercase">
-                                  {project.year}
-                                </span>
                               </dd>
                             </div>
                           </dl>
@@ -325,44 +294,24 @@ export default function Projects() {
                             rel="noreferrer"
                             className="mt-8 inline-flex items-center gap-2 border-b border-ink pb-1 font-mono text-[12px] uppercase text-ink transition-colors hover:border-electric hover:text-blueprint"
                           >
-                            <ArrowUpRight
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
-                            Source file
+                            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                            source file
                           </a>
                         </div>
 
-                        <div className="relative min-h-[340px] border-y border-ink/10 py-6 md:border-y-0 md:border-l md:pl-10">
-                          <div className="mb-5 flex items-center justify-between font-mono text-[11px] uppercase text-stone">
+                        <div className="relative min-h-[380px] overflow-hidden border-y border-ink/10 py-6 md:border-y-0 md:border-l md:pl-10">
+                          <div className="mb-5 flex items-center justify-between font-mono text-[10px] uppercase text-stone">
                             <span className="flex items-center gap-2">
-                              <CircuitBoard
-                                className="h-4 w-4 text-electric"
-                                aria-hidden="true"
-                              />
-                              Interactive blueprint
+                              <FileText className="h-4 w-4 text-electric" aria-hidden="true" />
+                              project-specific visual system
                             </span>
-                            <span className="flex items-center gap-2">
-                              <ScanLine
-                                className="h-4 w-4 text-blueprint"
-                                aria-hidden="true"
-                              />
-                              {project.status}
-                            </span>
+                            <span>{project.year}</span>
                           </div>
-                          <div className="relative overflow-hidden border border-ink/10 bg-cream/55">
-                            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(26,22,18,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(26,22,18,0.045)_1px,transparent_1px)] bg-[size:28px_28px]" />
-                            <div className="relative p-3 md:p-6">
-                              {project.slug === "equity" && (
-                                <EquityDiagram animate={isMotionEnabled} />
-                              )}
-                              {project.slug === "neurofin" && (
-                                <NeurofinDiagram animate={isMotionEnabled} />
-                              )}
-                              {project.slug === "mentora" && (
-                                <MentoraDiagram animate={isMotionEnabled} />
-                              )}
-                            </div>
+                          <div className="relative overflow-hidden bg-cream/55">
+                            {project.slug === "equity" && <EquityBlueprint />}
+                            {project.slug === "neurofin" && <NeurofinBlueprint />}
+                            {project.slug === "mentora" && <MentoraBlueprint />}
+                            {project.slug === "lab" && <LabBlueprint />}
                           </div>
                         </div>
                       </div>
@@ -378,316 +327,215 @@ export default function Projects() {
   );
 }
 
-function FlowTrace({ steps }: { steps: string[] }) {
+function BlueprintShell({
+  children,
+  label,
+}: {
+  children: React.ReactNode;
+  label: string;
+}) {
   return (
-    <ol className="grid gap-2 md:grid-cols-5">
-      {steps.map((step, index) => (
-        <li key={step} className="relative min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="grid h-5 w-5 shrink-0 place-items-center border border-ink/15 bg-cream text-[9px] text-stone">
-              {index + 1}
-            </span>
-            <span className="min-w-0 text-[11px] uppercase leading-snug text-ink">
-              {step}
-            </span>
-          </div>
-          {index < steps.length - 1 && (
-            <span
-              className="ml-2.5 hidden h-px bg-electric/60 md:absolute md:left-full md:top-2.5 md:block md:w-[calc(100%-1.25rem)]"
-              aria-hidden="true"
-            />
-          )}
-        </li>
-      ))}
-    </ol>
+    <svg
+      viewBox="0 0 720 430"
+      className="h-auto w-full font-mono"
+      role="img"
+      aria-label={label}
+    >
+      <rect x="1" y="1" width="718" height="428" fill="#F5F0E8" opacity="0.82" />
+      <path
+        className="blueprint-path"
+        d="M32 40 H688 M32 390 H688 M40 32 V398 M680 32 V398"
+        pathLength="1"
+        fill="none"
+        stroke="#1A1612"
+        strokeOpacity="0.16"
+      />
+      {children}
+    </svg>
   );
 }
 
-function DiagramLabel({
+function Node({
   x,
   y,
   title,
   detail,
+  warm = false,
 }: {
   x: number;
   y: number;
   title: string;
   detail: string;
+  warm?: boolean;
 }) {
   return (
     <g>
       <rect
-        x={x - 48}
-        y={y - 19}
-        width="96"
-        height="38"
-        rx="3"
-        fill="#F5F0E8"
+        x={x - 56}
+        y={y - 24}
+        width="112"
+        height="48"
+        fill={warm ? "#F4E7D8" : "#F5F0E8"}
         stroke="#1A1612"
-        strokeOpacity="0.18"
+        strokeOpacity="0.22"
       />
-      <text x={x} y={y - 3} textAnchor="middle" fill="#1A1612" fontSize="9">
+      <text x={x} y={y - 3} textAnchor="middle" fill="#1A1612" fontSize="11">
         {title}
       </text>
-      <text x={x} y={y + 10} textAnchor="middle" fill="#8C8480" fontSize="7.5">
+      <text x={x} y={y + 13} textAnchor="middle" fill="#8C8480" fontSize="8">
         {detail}
       </text>
     </g>
   );
 }
 
-function MotionPacket({
-  animate,
-  path,
-  delay = "0s",
-}: {
-  animate: boolean;
-  path: string;
-  delay?: string;
-}) {
-  return (
-    <circle r="3.2" fill="#4AFF91" opacity={animate ? 1 : 0.75}>
-      {animate && (
-        <animateMotion
-          dur="3.4s"
-          begin={delay}
-          repeatCount="indefinite"
-          path={path}
-        />
-      )}
-    </circle>
-  );
-}
-
-function EquityDiagram({ animate }: { animate: boolean }) {
-  const path = "M 42 150 L 172 150 L 282 150 L 408 150";
-
-  return (
-    <svg
-      viewBox="0 0 450 300"
-      className="h-auto w-full font-mono"
-      role="img"
-      aria-label="Equity Research Platform architecture"
-    >
-      <defs>
-        <marker
-          id="arrow-equity"
-          markerWidth="7"
-          markerHeight="7"
-          refX="6"
-          refY="3.5"
-          orient="auto"
-        >
-          <path d="M0,0 L0,7 L7,3.5 z" fill="#4AFF91" fillOpacity="0.65" />
-        </marker>
-      </defs>
-      <path
-        d={path}
-        fill="none"
-        stroke="#4AFF91"
-        strokeWidth="1.1"
-        strokeOpacity="0.42"
-        markerEnd="url(#arrow-equity)"
-      />
-      <path
-        d="M172 150 C172 88 236 88 236 130"
-        fill="none"
-        stroke="#4AFF91"
-        strokeDasharray="4 7"
-        strokeOpacity="0.28"
-      >
-        {animate && (
-          <animate
-            attributeName="stroke-dashoffset"
-            from="0"
-            to="-22"
-            dur="2.4s"
-            repeatCount="indefinite"
-          />
-        )}
-      </path>
-      <MotionPacket animate={animate} path={path} />
-      <MotionPacket animate={animate} path={path} delay="1.2s" />
-      <DiagramLabel x={42} y={150} title="Market" detail="live data" />
-      <DiagramLabel x={172} y={150} title="LangGraph" detail="research loop" />
-      <DiagramLabel x={282} y={150} title="FastAPI" detail="stateless API" />
-      <DiagramLabel x={408} y={150} title="React" detail="dashboard" />
-      <text x="172" y="72" fill="#8C8480" fontSize="9">
-        context retrieval + decision trace
-      </text>
-    </svg>
-  );
-}
-
-function NeurofinDiagram({ animate }: { animate: boolean }) {
-  const orbit =
-    "M 225 58 C 320 58 372 138 346 215 C 320 294 230 322 150 278 C 68 232 78 132 142 82 C 166 64 194 58 225 58";
-
-  const agents = [
-    ["router", 225, 48],
-    ["forecast", 340, 128],
-    ["risk", 320, 254],
-    ["advisor", 225, 298],
-    ["savings", 104, 242],
-    ["classifier", 102, 128],
+function EquityBlueprint() {
+  const outputs = [
+    ["BUY", 610, 102],
+    ["HOLD", 610, 190],
+    ["WATCH", 610, 278],
   ] as const;
 
   return (
-    <svg
-      viewBox="0 0 450 340"
-      className="h-auto w-full font-mono"
-      role="img"
-      aria-label="NeuroFin 12-agent architecture"
-    >
+    <BlueprintShell label="Equity Research Platform blueprint">
       <path
-        d={orbit}
+        className="blueprint-path"
+        d="M88 216 H212 C260 216 258 112 322 112 H446 C500 112 506 102 554 102 M322 112 V216 H554 M322 216 V278 H554"
+        pathLength="1"
         fill="none"
         stroke="#4AFF91"
-        strokeDasharray="5 8"
-        strokeOpacity="0.3"
-      >
-        {animate && (
-          <animate
-            attributeName="stroke-dashoffset"
-            from="0"
-            to="-26"
-            dur="4.8s"
-            repeatCount="indefinite"
-          />
-        )}
-      </path>
-      <g stroke="#4AFF91" strokeOpacity="0.25" strokeWidth="0.8">
-        {agents.map(([, x, y]) => (
-          <line key={`${x}-${y}`} x1="225" y1="170" x2={x} y2={y} />
-        ))}
-      </g>
-      <circle
-        cx="225"
-        cy="170"
-        r="39"
-        fill="#F5F0E8"
-        stroke="#4AFF91"
-        strokeOpacity="0.55"
+        strokeWidth="2.2"
+        strokeLinecap="square"
       />
-      <text x="225" y="164" textAnchor="middle" fill="#1A1612" fontSize="10">
-        Amazon Nova
-      </text>
-      <text x="225" y="180" textAnchor="middle" fill="#2E5E4E" fontSize="8">
-        reasoning layer
-      </text>
-      <MotionPacket animate={animate} path={orbit} />
-      <MotionPacket animate={animate} path={orbit} delay="2s" />
-      {agents.map(([label, x, y]) => (
-        <DiagramLabel key={label} x={x} y={y} title={label} detail="agent" />
+      <path
+        className="blueprint-path"
+        d="M212 216 C260 326 386 338 488 302"
+        pathLength="1"
+        fill="none"
+        stroke="#2E5E4E"
+        strokeDasharray="6 8"
+        strokeOpacity="0.65"
+      />
+      <Node x={88} y={216} title="market" detail="price + news" />
+      <Node x={212} y={216} title="context" detail="retrieval" />
+      <Node x={322} y={112} title="research" detail="LangGraph" />
+      <Node x={322} y={216} title="API" detail="FastAPI" />
+      <Node x={488} y={302} title="explain" detail="trace" />
+      {outputs.map(([title, x, y]) => (
+        <Node key={title} x={x} y={y} title={title} detail="ranked" />
       ))}
-      <text x="24" y="320" fill="#8C8480" fontSize="9">
-        Redis memory + bank transactions + SNS alerts + tax intelligence
+      <text x="48" y="370" fill="#8C8480" fontSize="10">
+        ranked signal outputs / inference flow / explainable recommendation path
       </text>
-    </svg>
+    </BlueprintShell>
   );
 }
 
-function MentoraDiagram({ animate }: { animate: boolean }) {
-  const leftPath = "M 92 155 C 154 94 218 94 282 155";
-  const rightPath = "M 282 155 C 218 216 154 216 92 155";
+function NeurofinBlueprint() {
+  const agents = [
+    ["router", 360, 74],
+    ["risk", 548, 142],
+    ["forecast", 540, 286],
+    ["tax", 360, 350],
+    ["advisor", 174, 286],
+    ["anomaly", 172, 142],
+  ] as const;
 
   return (
-    <svg
-      viewBox="0 0 450 300"
-      className="h-auto w-full font-mono"
-      role="img"
-      aria-label="Mentora semantic matching architecture"
-    >
-      <circle
-        cx="92"
-        cy="155"
-        r="46"
-        fill="#F5F0E8"
-        stroke="#1A1612"
-        strokeOpacity="0.18"
-      />
-      <circle
-        cx="358"
-        cy="155"
-        r="46"
-        fill="#F5F0E8"
-        stroke="#1A1612"
-        strokeOpacity="0.18"
-      />
-      <rect
-        x="172"
-        y="123"
-        width="106"
-        height="64"
-        rx="4"
-        fill="#F5F0E8"
-        stroke="#4AFF91"
-        strokeOpacity="0.5"
-      />
-      <text x="92" y="152" textAnchor="middle" fill="#1A1612" fontSize="10">
-        mentee
-      </text>
-      <text x="92" y="168" textAnchor="middle" fill="#8C8480" fontSize="8">
-        goals + level
-      </text>
-      <text x="225" y="147" textAnchor="middle" fill="#1A1612" fontSize="10">
-        embeddings
-      </text>
-      <text x="225" y="164" textAnchor="middle" fill="#2E5E4E" fontSize="8">
-        compatibility
-      </text>
-      <text x="358" y="152" textAnchor="middle" fill="#1A1612" fontSize="10">
-        mentor
-      </text>
-      <text x="358" y="168" textAnchor="middle" fill="#8C8480" fontSize="8">
-        skills + exp
-      </text>
+    <BlueprintShell label="NeuroFin multi-agent blueprint">
       <path
-        d={leftPath}
+        className="blueprint-path"
+        d="M360 74 C542 84 628 236 540 286 C448 366 258 364 174 286 C82 202 164 78 360 74"
+        pathLength="1"
+        fill="none"
+        stroke="#2E5E4E"
+        strokeWidth="2"
+        strokeDasharray="8 9"
+      />
+      <path
+        className="blueprint-path"
+        d="M360 210 L360 74 M360 210 L548 142 M360 210 L540 286 M360 210 L360 350 M360 210 L174 286 M360 210 L172 142"
+        pathLength="1"
         fill="none"
         stroke="#4AFF91"
-        strokeOpacity="0.42"
-        strokeDasharray="5 7"
-      >
-        {animate && (
-          <animate
-            attributeName="stroke-dashoffset"
-            from="0"
-            to="-24"
-            dur="3s"
-            repeatCount="indefinite"
-          />
-        )}
-      </path>
+        strokeOpacity="0.72"
+      />
+      <circle cx="360" cy="210" r="54" fill="#F5F0E8" stroke="#1A1612" strokeOpacity="0.22" />
+      <text x="360" y="205" textAnchor="middle" fill="#1A1612" fontSize="12">
+        memory
+      </text>
+      <text x="360" y="224" textAnchor="middle" fill="#8C8480" fontSize="9">
+        Redis + Nova
+      </text>
+      {agents.map(([title, x, y]) => (
+        <Node key={title} x={x} y={y} title={title} detail="agent" />
+      ))}
+      <text x="48" y="370" fill="#8C8480" fontSize="10">
+        deterministic route / specialist agents / bank data to finance action
+      </text>
+    </BlueprintShell>
+  );
+}
+
+function MentoraBlueprint() {
+  return (
+    <BlueprintShell label="Mentora semantic matching blueprint">
       <path
-        d={rightPath}
+        className="blueprint-path"
+        d="M110 214 C210 96 326 96 360 214 C394 332 510 332 610 214"
+        pathLength="1"
+        fill="none"
+        stroke="#B65B3A"
+        strokeWidth="2.2"
+      />
+      <path
+        className="blueprint-path"
+        d="M110 214 C218 318 502 318 610 214 M222 214 H498"
+        pathLength="1"
         fill="none"
         stroke="#4AFF91"
-        strokeOpacity="0.42"
-        strokeDasharray="5 7"
-      >
-        {animate && (
-          <animate
-            attributeName="stroke-dashoffset"
-            from="0"
-            to="24"
-            dur="3s"
-            repeatCount="indefinite"
-          />
-        )}
-      </path>
-      <MotionPacket
-        animate={animate}
-        path="M 92 155 L 172 155 L 278 155 L 358 155"
+        strokeDasharray="7 8"
+        strokeOpacity="0.62"
       />
-      <MotionPacket
-        animate={animate}
-        path="M 358 155 L 278 155 L 172 155 L 92 155"
-        delay="1.4s"
-      />
-      <text x="24" y="270" fill="#8C8480" fontSize="9">
-        semantic profile matching + realtime Firebase conversation layer
+      <circle cx="110" cy="214" r="58" fill="#F4E7D8" stroke="#1A1612" strokeOpacity="0.2" />
+      <circle cx="610" cy="214" r="58" fill="#F4E7D8" stroke="#1A1612" strokeOpacity="0.2" />
+      <Node x={110} y={214} title="mentee" detail="goals" warm />
+      <Node x={360} y={214} title="semantic map" detail="embedding space" warm />
+      <Node x={610} y={214} title="mentor" detail="skills" warm />
+      <text x="48" y="370" fill="#8C8480" fontSize="10">
+        human matching logic / compatibility score / realtime conversation layer
       </text>
-    </svg>
+    </BlueprintShell>
+  );
+}
+
+function LabBlueprint() {
+  return (
+    <BlueprintShell label="NEEL.OS lab blueprint">
+      <path
+        className="blueprint-path"
+        d="M84 330 V112 H232 V214 H372 V94 H566 V316 H446 V214 H232"
+        pathLength="1"
+        fill="none"
+        stroke="#1A1612"
+        strokeWidth="2"
+        strokeOpacity="0.72"
+      />
+      <path
+        className="blueprint-path"
+        d="M84 330 C212 370 382 364 566 316"
+        pathLength="1"
+        fill="none"
+        stroke="#4AFF91"
+        strokeWidth="2.4"
+      />
+      <Node x={84} y={330} title="GSAP" detail="scene" />
+      <Node x={232} y={214} title="Motion" detail="state" />
+      <Node x={372} y={94} title="R3F" detail="machine" />
+      <Node x={566} y={316} title="Next" detail="deploy" />
+      <text x="48" y="370" fill="#8C8480" fontSize="10">
+        portfolio as R&D artifact / motion as proof / interface as system
+      </text>
+    </BlueprintShell>
   );
 }

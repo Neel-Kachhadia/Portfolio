@@ -48,10 +48,11 @@ canvas {
 body {
   color: var(--ink);
   background:
-    linear-gradient(rgba(26, 22, 18, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(26, 22, 18, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 72% 18%, rgba(74, 255, 145, 0.09), transparent 25rem),
+    linear-gradient(rgba(26, 22, 18, 0.014) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 22, 18, 0.012) 1px, transparent 1px),
     var(--cream);
-  background-size: 42px 42px;
+  background-size: auto, 78px 78px, 78px 78px;
   font-family: var(--font-geist-mono), ui-monospace, sans-serif;
   overflow-x: hidden;
 }
