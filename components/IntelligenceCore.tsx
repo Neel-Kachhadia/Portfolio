@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Billboard, Line, Text } from "@react-three/drei";
+import { Billboard, Text } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { useMotionPreference } from "@/components/useMotionPreference";
@@ -16,14 +16,54 @@ type CoreNode = {
 
 const CORE_NODES: CoreNode[] = [
   { id: "core", label: "reasoning core", position: [0, 0, 0], tier: "model" },
-  { id: "langgraph", label: "LangGraph", position: [-0.82, 0.68, -0.12], tier: "agent" },
-  { id: "fastapi", label: "FastAPI", position: [0.82, 0.62, 0.06], tier: "interface" },
-  { id: "bedrock", label: "Bedrock", position: [0.28, 1.1, -0.28], tier: "model" },
-  { id: "redis", label: "Redis cache", position: [-0.55, -0.86, 0.16], tier: "data" },
-  { id: "s3", label: "S3 artifacts", position: [0.72, -0.84, -0.08], tier: "data" },
-  { id: "react", label: "React UI", position: [0.92, -0.14, 0.22], tier: "interface" },
-  { id: "agents", label: "12 agents", position: [-0.92, -0.12, 0.12], tier: "agent" },
-  { id: "signals", label: "market signals", position: [-0.18, -1.2, -0.2], tier: "data" },
+  {
+    id: "langgraph",
+    label: "LangGraph",
+    position: [-0.82, 0.68, -0.12],
+    tier: "agent",
+  },
+  {
+    id: "fastapi",
+    label: "FastAPI",
+    position: [0.82, 0.62, 0.06],
+    tier: "interface",
+  },
+  {
+    id: "bedrock",
+    label: "Bedrock",
+    position: [0.28, 1.1, -0.28],
+    tier: "model",
+  },
+  {
+    id: "redis",
+    label: "Redis cache",
+    position: [-0.55, -0.86, 0.16],
+    tier: "data",
+  },
+  {
+    id: "s3",
+    label: "S3 artifacts",
+    position: [0.72, -0.84, -0.08],
+    tier: "data",
+  },
+  {
+    id: "react",
+    label: "React UI",
+    position: [0.92, -0.14, 0.22],
+    tier: "interface",
+  },
+  {
+    id: "agents",
+    label: "12 agents",
+    position: [-0.92, -0.12, 0.12],
+    tier: "agent",
+  },
+  {
+    id: "signals",
+    label: "market signals",
+    position: [-0.18, -1.2, -0.2],
+    tier: "data",
+  },
 ];
 
 const CONNECTIONS: Array<[number, number]> = [
@@ -49,6 +89,18 @@ const tierColor: Record<CoreNode["tier"], string> = {
   data: "#2E5E4E",
   interface: "#B65B3A",
 };
+
+const scratchStart = new THREE.Vector3();
+const scratchEnd = new THREE.Vector3();
+const scratchCurrent = new THREE.Vector3();
+
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function easeOut(value: number) {
+  return 1 - Math.pow(1 - clamp01(value), 3);
+}
 
 function useElementInView(ref: React.RefObject<HTMLElement>) {
   const [isInView, setIsInView] = useState(true);
@@ -125,9 +177,11 @@ function CoreAura({ active }: { active: boolean }) {
 function SignalPackets({
   active,
   pulse,
+  introComplete,
 }: {
   active: boolean;
   pulse: number;
+  introComplete: boolean;
 }) {
   const packetRefs = useRef<THREE.Mesh[]>([]);
   const pulseRefs = useRef<THREE.Mesh[]>([]);
@@ -143,7 +197,7 @@ function SignalPackets({
   );
 
   useFrame((state) => {
-    if (!active) return;
+    if (!active || !introComplete) return;
 
     const time = state.clock.elapsedTime;
 
@@ -212,6 +266,61 @@ function SignalPackets({
   );
 }
 
+function DrawnConnection({
+  from,
+  to,
+  index,
+  active,
+  highlighted,
+}: {
+  from: number;
+  to: number;
+  index: number;
+  active: boolean;
+  highlighted: boolean;
+}) {
+  const geometryRef = useRef<THREE.BufferGeometry>(null);
+  const materialRef = useRef<THREE.LineBasicMaterial>(null);
+  const positions = useMemo(() => new Float32Array(6), []);
+
+  useFrame((state) => {
+    if (!active || !geometryRef.current || !materialRef.current) return;
+
+    scratchStart.fromArray(CORE_NODES[from].position);
+    scratchEnd.fromArray(CORE_NODES[to].position);
+
+    const progress = easeOut((state.clock.elapsedTime - index * 0.1) / 0.82);
+    scratchCurrent.lerpVectors(scratchStart, scratchEnd, progress);
+
+    positions[0] = scratchStart.x;
+    positions[1] = scratchStart.y;
+    positions[2] = scratchStart.z;
+    positions[3] = scratchCurrent.x;
+    positions[4] = scratchCurrent.y;
+    positions[5] = scratchCurrent.z;
+
+    const attribute = geometryRef.current.attributes.position;
+    attribute.needsUpdate = true;
+    geometryRef.current.computeBoundingSphere();
+
+    materialRef.current.opacity = highlighted ? 0.72 : 0.1 + progress * 0.26;
+  });
+
+  return (
+    <line>
+      <bufferGeometry ref={geometryRef}>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <lineBasicMaterial
+        ref={materialRef}
+        color={highlighted ? "#4AFF91" : "#2E5E4E"}
+        transparent
+        opacity={0}
+      />
+    </line>
+  );
+}
+
 function IntelligenceGraph({
   active,
   pulse,
@@ -221,6 +330,8 @@ function IntelligenceGraph({
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const nodeRefs = useRef<THREE.Mesh[]>([]);
+  const [activeNode, setActiveNode] = useState<string | null>("core");
+  const [introComplete, setIntroComplete] = useState(false);
 
   useFrame((state) => {
     if (!active || !groupRef.current) return;
@@ -242,8 +353,16 @@ function IntelligenceGraph({
 
     nodeRefs.current.forEach((node, index) => {
       const base = CORE_NODES[index].position;
+      const intro = easeOut((time - 0.32 - index * 0.08) / 0.76);
+      const isCore = CORE_NODES[index].id === "core";
+
       node.position.y = base[1] + Math.sin(time * 0.75 + index * 0.83) * 0.025;
+      node.scale.setScalar((isCore ? 1 : 0.86) * (0.16 + intro * 0.84));
     });
+
+    if (!introComplete && time > 2.1) {
+      setIntroComplete(true);
+    }
 
     state.camera.position.x = THREE.MathUtils.lerp(
       state.camera.position.x,
@@ -262,21 +381,32 @@ function IntelligenceGraph({
     <group ref={groupRef}>
       <CoreAura active={active} />
 
-      {CONNECTIONS.map(([from, to], index) => (
-        <Line
-          key={`${from}-${to}-${index}`}
-          points={[CORE_NODES[from].position, CORE_NODES[to].position]}
-          color="#4AFF91"
-          lineWidth={0.7}
-          transparent
-          opacity={0.32}
-        />
-      ))}
+      {CONNECTIONS.map(([from, to], index) => {
+        const highlighted =
+          activeNode === CORE_NODES[from].id ||
+          activeNode === CORE_NODES[to].id;
 
-      <SignalPackets active={active} pulse={pulse} />
+        return (
+          <DrawnConnection
+            key={`${from}-${to}-${index}`}
+            from={from}
+            to={to}
+            index={index}
+            active={active}
+            highlighted={highlighted}
+          />
+        );
+      })}
+
+      <SignalPackets
+        active={active}
+        pulse={pulse}
+        introComplete={introComplete}
+      />
 
       {CORE_NODES.map((node, index) => {
         const isCore = node.id === "core";
+        const isActive = activeNode === node.id;
 
         return (
           <group key={node.id}>
@@ -285,12 +415,17 @@ function IntelligenceGraph({
                 if (mesh) nodeRefs.current[index] = mesh;
               }}
               position={node.position}
+              onPointerOver={(event) => {
+                event.stopPropagation();
+                setActiveNode(node.id);
+              }}
+              onPointerOut={() => setActiveNode("core")}
             >
               <sphereGeometry args={[isCore ? 0.12 : 0.062, 32, 32]} />
               <meshStandardMaterial
-                color={isCore ? "#4AFF91" : "#F5F0E8"}
+                color={isCore || isActive ? "#4AFF91" : "#F5F0E8"}
                 emissive={isCore ? "#4AFF91" : tierColor[node.tier]}
-                emissiveIntensity={isCore ? 0.72 : 0.08}
+                emissiveIntensity={isCore || isActive ? 0.72 : 0.08}
                 metalness={0.04}
                 roughness={0.42}
               />
@@ -304,8 +439,8 @@ function IntelligenceGraph({
               ]}
             >
               <Text
-                color={isCore ? "#1A1612" : "#3D3530"}
-                fontSize={isCore ? 0.095 : 0.074}
+                color={isCore || isActive ? "#1A1612" : "#3D3530"}
+                fontSize={isCore || isActive ? 0.095 : 0.074}
                 anchorX="center"
                 anchorY="middle"
                 maxWidth={0.95}
@@ -399,7 +534,11 @@ export default function IntelligenceCore({ pulse }: { pulse: number }) {
           camera={{ position: [0, 0.08, 3.28], fov: 43 }}
           dpr={[1, 1.5]}
           frameloop={isInView ? "always" : "demand"}
-          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+          gl={{
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance",
+          }}
         >
           <Suspense fallback={null}>
             <ambientLight intensity={1.1} />
@@ -417,7 +556,10 @@ export default function IntelligenceCore({ pulse }: { pulse: number }) {
         </Canvas>
       )}
       <div className="pointer-events-none absolute bottom-5 left-5 hidden font-mono text-[10px] uppercase text-stone md:block">
-        CORE_STATUS: ONLINE / SIGNAL: 2026
+        CORE_STATUS: ONLINE / GRAPH_ASSEMBLY: SEQUENTIAL
+      </div>
+      <div className="pointer-events-none absolute right-5 top-5 hidden max-w-[11rem] text-right font-mono text-[10px] uppercase leading-relaxed text-stone md:block">
+        Hover nodes to activate system channels. Pulse route armed.
       </div>
     </div>
   );

@@ -11,7 +11,9 @@ import {
   MessagesSquare,
   Moon,
   Navigation,
+  RadioTower,
   Sparkles,
+  Terminal,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -58,7 +60,10 @@ export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const { isMotionEnabled, toggleMotion } = useMotionPreference();
 
-  const scrollTo = (selector: string, block: ScrollLogicalPosition = "start") => {
+  const scrollTo = (
+    selector: string,
+    block: ScrollLogicalPosition = "start",
+  ) => {
     const element = document.querySelector(selector);
     element?.scrollIntoView({
       behavior: isMotionEnabled ? "smooth" : "auto",
@@ -262,51 +267,76 @@ export default function CommandPalette() {
         className="absolute inset-0 bg-ink/35 backdrop-blur-sm"
         onClick={() => setIsOpen(false)}
       />
-      <div className="relative mx-auto mt-[18vh] w-[calc(100%-2rem)] max-w-2xl border border-electric/70 bg-ink text-cream shadow-[0_24px_90px_rgba(26,22,18,0.35)]">
-        <div className="flex items-center border-b border-cream/10 px-4">
-          <span className="mr-2 text-electric">/</span>
-          <Command.Input
-            autoFocus
-            placeholder="Search NEEL.OS..."
-            className="w-full bg-transparent py-4 text-sm text-cream outline-none placeholder:text-stone"
-          />
+      <div className="relative mx-auto mt-[14vh] grid w-[calc(100%-2rem)] max-w-3xl overflow-hidden border border-electric/70 bg-ink text-cream shadow-[0_24px_90px_rgba(26,22,18,0.35)] md:grid-cols-[13rem_1fr]">
+        <div className="hidden border-r border-cream/10 p-4 font-mono text-[10px] uppercase text-stone md:flex md:flex-col md:justify-between">
+          <div>
+            <div className="mb-8 flex items-center gap-2 text-cream">
+              <Terminal className="h-4 w-4 text-electric" aria-hidden="true" />
+              OS control
+            </div>
+            <div className="space-y-3 leading-relaxed">
+              <div>Mode: command</div>
+              <div>Motion: {isMotionEnabled ? "on" : "reduced"}</div>
+              <div>Route: local</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-electric">
+            <RadioTower className="h-4 w-4" aria-hidden="true" />
+            signal ready
+          </div>
         </div>
 
-        <Command.List className="max-h-[420px] overflow-y-auto p-2">
-          <Command.Empty className="px-4 py-8 text-center text-sm text-stone">
-            No matching command.
-          </Command.Empty>
+        <div>
+          <div className="flex items-center border-b border-cream/10 px-4">
+            <span className="mr-2 text-electric">/</span>
+            <Command.Input
+              autoFocus
+              placeholder="Search NEEL.OS..."
+              className="w-full bg-transparent py-4 text-sm text-cream outline-none placeholder:text-stone"
+            />
+          </div>
 
-          {commandGroups.map((group) => (
-            <Command.Group
-              key={group.heading}
-              heading={group.heading}
-              className="pb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:text-stone"
-            >
-              {group.commands.map((item) => {
-                const Icon = item.icon;
+          <Command.List className="max-h-[480px] overflow-y-auto p-2">
+            <Command.Empty className="px-4 py-8 text-center text-sm text-stone">
+              No matching command.
+            </Command.Empty>
 
-                return (
-                  <Command.Item
-                    key={item.id}
-                    value={item.label}
-                    keywords={item.keywords}
-                    onSelect={item.action}
-                    className="flex cursor-pointer items-center gap-3 border-l-2 border-transparent px-3 py-3 text-sm text-stone outline-none transition-colors data-[selected=true]:border-electric data-[selected=true]:bg-electric/10 data-[selected=true]:text-cream"
-                  >
-                    <Icon className="h-4 w-4 text-electric" aria-hidden="true" />
-                    <span className="flex min-w-0 flex-1 flex-col gap-1">
-                      <span className="truncate text-cream">{item.label}</span>
-                      <span className="truncate text-[11px] text-stone">
-                        {item.detail}
+            {commandGroups.map((group) => (
+              <Command.Group
+                key={group.heading}
+                heading={group.heading}
+                className="pb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:text-stone"
+              >
+                {group.commands.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <Command.Item
+                      key={item.id}
+                      value={item.label}
+                      keywords={item.keywords}
+                      onSelect={item.action}
+                      className="flex cursor-pointer items-center gap-3 border-l-2 border-transparent px-3 py-3 text-sm text-stone outline-none transition-colors data-[selected=true]:border-electric data-[selected=true]:bg-electric/10 data-[selected=true]:text-cream"
+                    >
+                      <Icon
+                        className="h-4 w-4 text-electric"
+                        aria-hidden="true"
+                      />
+                      <span className="flex min-w-0 flex-1 flex-col gap-1">
+                        <span className="truncate text-cream">
+                          {item.label}
+                        </span>
+                        <span className="truncate text-[11px] text-stone">
+                          {item.detail}
+                        </span>
                       </span>
-                    </span>
-                  </Command.Item>
-                );
-              })}
-            </Command.Group>
-          ))}
-        </Command.List>
+                    </Command.Item>
+                  );
+                })}
+              </Command.Group>
+            ))}
+          </Command.List>
+        </div>
       </div>
     </Command.Dialog>
   );

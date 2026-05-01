@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { UserRound } from "lucide-react";
 import { useMotionPreference } from "@/components/useMotionPreference";
 
 const timelineEvents = [
@@ -105,20 +106,24 @@ export default function About() {
       id="about"
       ref={sectionRef}
       aria-labelledby="about-title"
-      className="w-full px-6 py-32 md:py-44"
+      className="w-full px-6 py-32 md:px-8 md:py-44"
     >
-      <div className="grid gap-16 md:grid-cols-[0.86fr_1.14fr]">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-16 md:grid-cols-[0.86fr_1.14fr]">
         <div className="md:sticky md:top-28 md:self-start">
-          <span className="font-mono text-[11px] uppercase text-stone">
-            ABOUT / HUMAN SYSTEM LOG
+          <span className="flex items-center gap-2 font-mono text-[11px] uppercase text-stone">
+            <UserRound className="h-4 w-4 text-electric" aria-hidden="true" />
+            05 / HUMAN_LAYER
           </span>
           <h2
             id="about-title"
-            className="mt-3 font-mono text-5xl font-black leading-none text-ink md:text-7xl"
+            className="mt-5 font-mono text-[4rem] font-black uppercase leading-[0.78] text-ink sm:text-[5.4rem] md:text-[7.8rem]"
           >
-            ABOUT
+            HUMAN
+            <span className="block font-serif font-normal italic text-stone">
+              layer
+            </span>
           </h2>
-          <p className="mt-8 max-w-xl font-serif text-2xl italic leading-tight text-stone md:text-3xl">
+          <p className="mt-10 max-w-xl font-serif text-3xl italic leading-[1.02] text-stone md:text-4xl">
             Neel builds like an engineer, edits like a designer, and thinks
             about software as a living system people should want to touch.
           </p>
@@ -164,7 +169,9 @@ export default function About() {
                 <span className="absolute -left-[2.05rem] top-1.5 h-5 w-5 border border-ink/20 bg-cream">
                   <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-electric" />
                 </span>
-                <time className="text-xs uppercase text-stone">{event.date}</time>
+                <time className="text-xs uppercase text-stone">
+                  {event.date}
+                </time>
                 <div>
                   <h3 className="text-sm font-semibold uppercase text-ink">
                     {event.title}

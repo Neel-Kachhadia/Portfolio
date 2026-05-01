@@ -1,6 +1,7 @@
 import Loader from "@/components/Loader";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
+import IdentityReveal from "@/components/IdentityReveal";
 import Marquee from "@/components/Marquee";
 import Projects from "@/components/Projects";
 import Capabilities from "@/components/Capabilities";
@@ -16,8 +17,9 @@ export default function Home() {
       <Nav />
       <CommandPalette />
 
-      <main className="flex flex-col w-full max-w-[1400px] mx-auto">
+      <main className="flex w-full flex-col">
         <Hero />
+        <IdentityReveal />
         <Marquee />
         <Projects />
         <Capabilities />
