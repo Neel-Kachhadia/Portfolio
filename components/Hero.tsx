@@ -159,11 +159,11 @@ export default function Hero() {
 
       <div
         ref={leftPaperRef}
-        className="paper-fold paper-fold-left pointer-events-none absolute inset-0 z-10 bg-cream"
+        className="paper-fold pointer-events-none absolute inset-0 z-10 bg-cream"
       />
       <div
         ref={rightPaperRef}
-        className="paper-fold paper-fold-right pointer-events-none absolute inset-0 z-10 bg-paper"
+        className="paper-fold pointer-events-none absolute inset-0 z-10 bg-paper"
       />
       <div
         ref={seamRef}
