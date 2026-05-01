@@ -312,7 +312,12 @@ export default function IntelligenceCore({
           camera={{ position: [0, 0, 7], zoom: 76 }}
           dpr={[1, 1.35]}
           frameloop={isInView ? "always" : "demand"}
-          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+          gl={{
+            alpha: true,
+            antialias: true,
+            powerPreference: "high-performance",
+            preserveDrawingBuffer: true,
+          }}
         >
           <Suspense fallback={null}>
             <MachineScene activation={activation} opened={opened} />

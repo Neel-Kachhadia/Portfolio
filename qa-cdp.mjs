@@ -100,10 +100,17 @@ async function main() {
         };
       })()`,
     }, sessionId);
+    await fs.mkdir("output/playwright", { recursive: true });
+    const screenshot = await send("Page.captureScreenshot", {
+      format: "png",
+      fromSurface: true,
+      captureBeyondViewport: false,
+    }, sessionId);
+    await fs.writeFile(`output/playwright/${file}`, screenshot.data, "base64");
     await send("Target.closeTarget", { targetId: target.targetId });
     return {
       ...metrics.result.value,
-      file,
+      file: `output/playwright/${file}`,
     };
   }
 

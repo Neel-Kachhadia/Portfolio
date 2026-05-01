@@ -40,34 +40,28 @@ export default function Nav() {
 
       <div className="flex items-center gap-4 lg:gap-6">
         <a
-          href="#identity"
+          href="#home"
           className="hidden text-stone transition-colors hover:text-ink md:block"
         >
-          02 ID
+          Start
         </a>
         <a
           href="#work"
           className="hidden text-stone transition-colors hover:text-ink md:block"
         >
-          03 SYSTEMS
-        </a>
-        <a
-          href="#capabilities"
-          className="hidden text-stone transition-colors hover:text-ink md:block"
-        >
-          04 MAP
+          Work
         </a>
         <a
           href="#about"
           className="hidden text-stone transition-colors hover:text-ink md:block"
         >
-          05 HUMAN
+          Record
         </a>
         <a
           href="#contact"
           className="hidden text-stone transition-colors hover:text-ink md:block"
         >
-          06 SIGNAL
+          Signal
         </a>
         <button
           onClick={openCommandPalette}
