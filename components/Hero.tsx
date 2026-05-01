@@ -3,103 +3,188 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { ArrowDown, Command, MoveRight, RadioTower } from "lucide-react";
-import { motion } from "motion/react";
+import { ArrowDown, MoveRight } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useMotionPreference } from "@/components/useMotionPreference";
 
 const IntelligenceCore = dynamic(
   () => import("@/components/IntelligenceCore"),
   {
     ssr: false,
-    loading: () => (
-      <div className="grid h-full w-full place-items-center font-mono text-[10px] uppercase text-stone">
-        routing field loading
-      </div>
-    ),
+    loading: () => <div className="h-full w-full bg-ink" />,
   },
 );
 
-const chapters = [
-  ["INIT", "#home"],
-  ["IDENTITY", "#identity"],
-  ["DOSSIERS", "#work"],
-  ["MAP", "#capabilities"],
-  ["HUMAN", "#about"],
-  ["END", "#contact"],
-];
+const CLOSED_APERTURE =
+  "polygon(0% 47%, 100% 36%, 100% 37.5%, 0% 48.5%)";
+const OPEN_APERTURE =
+  "polygon(0% 33%, 100% 17%, 100% 64%, 0% 83%)";
+const ACTIVE_APERTURE =
+  "polygon(0% 27%, 100% 10%, 100% 72%, 0% 90%)";
 
 export default function Hero() {
   const [pulse, setPulse] = useState(0);
-  const [routeState, setRouteState] = useState<"idle" | "armed" | "sent">(
-    "idle",
+  const [status, setStatus] = useState<"quiet" | "opening" | "accepted">(
+    "quiet",
   );
   const sectionRef = useRef<HTMLElement>(null);
-  const markRef = useRef<HTMLDivElement>(null);
-  const machineRef = useRef<HTMLDivElement>(null);
+  const apertureRef = useRef<HTMLDivElement>(null);
+  const edgeTopRef = useRef<SVGPathElement>(null);
+  const edgeBottomRef = useRef<SVGPathElement>(null);
   const routePathRef = useRef<SVGPathElement>(null);
+  const routeSignalRef = useRef<SVGCircleElement>(null);
   const titleRefs = useRef<HTMLSpanElement[]>([]);
-  const copyRef = useRef<HTMLParagraphElement>(null);
+  const metaRef = useRef<HTMLDivElement>(null);
+  const copyRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const { isMotionEnabled } = useMotionPreference();
 
   useEffect(() => {
-    if (!isMotionEnabled) return;
+    if (!isMotionEnabled) {
+      setStatus("accepted");
+      return;
+    }
 
     const ctx = gsap.context(() => {
-      gsap.set(titleRefs.current, { yPercent: 115, rotate: 2 });
-      gsap.set([copyRef.current, ctaRef.current], { opacity: 0, y: 18 });
-      gsap.set(markRef.current, { scaleX: 0, transformOrigin: "left center" });
-      gsap.set(machineRef.current, { opacity: 0, x: 80, rotate: -2 });
+      gsap.set(titleRefs.current, { yPercent: 112, rotate: 1.6 });
+      gsap.set([metaRef.current, copyRef.current, ctaRef.current], {
+        opacity: 0,
+        y: 18,
+      });
+      gsap.set(apertureRef.current, {
+        opacity: 0,
+        clipPath: CLOSED_APERTURE,
+        webkitClipPath: CLOSED_APERTURE,
+      });
+      gsap.set([edgeTopRef.current, edgeBottomRef.current], {
+        strokeDasharray: 1600,
+        strokeDashoffset: 1600,
+        opacity: 0,
+      });
 
       gsap
         .timeline({ defaults: { ease: "power4.out" } })
-        .to(markRef.current, { scaleX: 1, duration: 0.42 }, 0.12)
+        .to(metaRef.current, { opacity: 1, y: 0, duration: 0.42 }, 0.04)
         .to(
           titleRefs.current,
           {
             yPercent: 0,
             rotate: 0,
-            duration: 0.96,
-            stagger: 0.095,
+            duration: 0.86,
+            stagger: 0.085,
           },
-          0.28,
+          0.16,
         )
         .to(
-          machineRef.current,
-          { opacity: 1, x: 0, rotate: 0, duration: 1.15 },
-          0.48,
+          apertureRef.current,
+          {
+            opacity: 1,
+            clipPath: OPEN_APERTURE,
+            webkitClipPath: OPEN_APERTURE,
+            duration: 1.08,
+            ease: "expo.inOut",
+          },
+          0.78,
+        )
+        .to(
+          [edgeTopRef.current, edgeBottomRef.current],
+          {
+            opacity: 1,
+            strokeDashoffset: 0,
+            duration: 0.78,
+            stagger: 0.04,
+          },
+          0.92,
         )
         .to(
           [copyRef.current, ctaRef.current],
-          { opacity: 1, y: 0, duration: 0.62, stagger: 0.08 },
-          0.92,
-        );
+          { opacity: 1, y: 0, duration: 0.56, stagger: 0.08 },
+          1.22,
+        )
+        .call(() => {
+          setPulse((value) => value + 1);
+          drawRoute(false);
+        });
     }, sectionRef);
 
     return () => ctx.revert();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMotionEnabled]);
 
-  const fireRoute = (scrollAfter = false) => {
-    setPulse((value) => value + 1);
-    setRouteState("armed");
+  const drawRoute = (confirm = true) => {
+    const path = routePathRef.current;
+    const signal = routeSignalRef.current;
 
-    if (routePathRef.current && isMotionEnabled) {
-      const path = routePathRef.current;
-      const length = path.getTotalLength();
-      gsap.killTweensOf(path);
-      gsap.set(path, {
-        strokeDasharray: length,
-        strokeDashoffset: length,
-        opacity: 1,
-      });
-      gsap.to(path, {
-        strokeDashoffset: 0,
-        duration: 0.86,
-        ease: "power3.inOut",
-        onComplete: () => setRouteState("sent"),
-      });
+    if (!path || !signal) {
+      if (confirm) setStatus("accepted");
+      return;
+    }
+
+    const length = path.getTotalLength();
+    const progress = { value: 0 };
+
+    gsap.killTweensOf([path, signal]);
+    gsap.set(path, {
+      strokeDasharray: length,
+      strokeDashoffset: length,
+      opacity: 1,
+    });
+    gsap.set(signal, { opacity: 1, attr: { r: 6 } });
+
+    gsap.to(path, {
+      strokeDashoffset: 0,
+      duration: confirm ? 0.92 : 1.08,
+      ease: "power3.inOut",
+    });
+    gsap.to(progress, {
+      value: 1,
+      duration: confirm ? 0.92 : 1.08,
+      ease: "power3.inOut",
+      onUpdate: () => {
+        const point = path.getPointAtLength(progress.value * length);
+        signal.setAttribute("cx", String(point.x));
+        signal.setAttribute("cy", String(point.y));
+      },
+      onComplete: () => {
+        if (confirm) setStatus("accepted");
+        gsap.to(signal, {
+          attr: { r: 3.5 },
+          duration: 0.22,
+          ease: "power2.out",
+        });
+      },
+    });
+  };
+
+  const openSystem = (scrollAfter = false) => {
+    setPulse((value) => value + 1);
+    setStatus("opening");
+
+    if (isMotionEnabled) {
+      gsap
+        .timeline({ defaults: { ease: "expo.inOut" } })
+        .to(apertureRef.current, {
+          clipPath: ACTIVE_APERTURE,
+          webkitClipPath: ACTIVE_APERTURE,
+          duration: 0.48,
+        })
+        .to(
+          apertureRef.current,
+          {
+            clipPath: OPEN_APERTURE,
+            webkitClipPath: OPEN_APERTURE,
+            duration: 0.72,
+          },
+          "+=0.18",
+        );
+      gsap.fromTo(
+        [edgeTopRef.current, edgeBottomRef.current],
+        { y: 0 },
+        { y: (_, target) => (target === edgeTopRef.current ? -10 : 10), duration: 0.34, yoyo: true, repeat: 1 },
+      );
+      drawRoute(true);
     } else {
-      setRouteState("sent");
+      setStatus("accepted");
     }
 
     if (scrollAfter) {
@@ -108,7 +193,7 @@ export default function Hero() {
           behavior: isMotionEnabled ? "smooth" : "auto",
           block: "start",
         });
-      }, isMotionEnabled ? 620 : 0);
+      }, isMotionEnabled ? 760 : 0);
     }
   };
 
@@ -117,149 +202,171 @@ export default function Hero() {
       id="home"
       ref={sectionRef}
       aria-labelledby="hero-title"
-      className="relative min-h-[104svh] w-full overflow-hidden px-5 pb-16 pt-24 md:px-8 md:pb-10 md:pt-24"
+      className="relative isolate min-h-[100svh] w-full overflow-hidden bg-cream px-4 pb-40 pt-20 sm:px-6 sm:pb-8 md:px-8 md:pt-24"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_24%,rgba(74,255,145,0.18),transparent_28%),linear-gradient(90deg,rgba(26,22,18,0.05)_1px,transparent_1px)] bg-[size:auto,17vw_100%] opacity-70" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(rgba(26,22,18,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(26,22,18,0.014)_1px,transparent_1px)] bg-[size:92px_92px]" />
+      <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,rgba(26,22,18,0.45)_1px,transparent_0)] [background-size:18px_18px]" />
+
       <div
-        ref={markRef}
-        className="pointer-events-none absolute left-5 top-20 z-20 h-px w-[min(48rem,70vw)] bg-electric md:left-8"
-      />
+        ref={apertureRef}
+        className="pointer-events-none absolute inset-x-[-10vw] top-[19svh] z-20 h-[52svh] overflow-hidden bg-ink shadow-[0_34px_90px_rgba(26,22,18,0.34)] sm:top-[5svh] sm:h-[84svh]"
+        style={{
+          clipPath: CLOSED_APERTURE,
+          WebkitClipPath: CLOSED_APERTURE,
+        }}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_42%,rgba(74,255,145,0.16),transparent_28%),linear-gradient(120deg,rgba(245,240,232,0.08),transparent_22%,rgba(245,240,232,0.04)_60%,transparent)]" />
+        <IntelligenceCore pulse={pulse} />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 1400 760"
+          className="absolute inset-0 h-full w-full"
+          preserveAspectRatio="none"
+        >
+          <path
+            ref={routePathRef}
+            d="M 78 555 H 250 V 438 H 420 V 268 H 632 V 356 H 806 V 210 H 1128 V 300 H 1322"
+            fill="none"
+            stroke="#4AFF91"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            strokeWidth="3.2"
+            opacity="0"
+          />
+          <circle
+            ref={routeSignalRef}
+            cx="78"
+            cy="555"
+            r="0"
+            fill="#4AFF91"
+            opacity="0"
+          />
+        </svg>
+      </div>
 
       <svg
-        className="pointer-events-none absolute inset-0 z-20 h-full w-full"
         aria-hidden="true"
+        viewBox="0 0 1400 760"
+        className="pointer-events-none absolute inset-x-[-10vw] top-[19svh] z-30 h-[52svh] w-[120vw] sm:top-[5svh] sm:h-[84svh]"
+        preserveAspectRatio="none"
       >
         <path
-          ref={routePathRef}
-          d="M 60 560 C 260 470 370 420 520 448 S 780 565 980 420 S 1280 198 1460 242"
+          ref={edgeTopRef}
+          d="M -40 326 C 210 296 418 260 648 226 C 920 186 1112 140 1440 94"
           fill="none"
-          stroke="#4AFF91"
-          strokeWidth="2"
+          stroke="#F5F0E8"
           strokeLinecap="square"
-          opacity="0"
+          strokeWidth="18"
+        />
+        <path
+          d="M -40 326 C 210 296 418 260 648 226 C 920 186 1112 140 1440 94"
+          fill="none"
+          stroke="#1A1612"
+          strokeOpacity="0.34"
+          strokeWidth="1.4"
+        />
+        <path
+          ref={edgeBottomRef}
+          d="M -40 620 C 260 548 468 510 706 466 C 966 418 1168 390 1440 354"
+          fill="none"
+          stroke="#F5F0E8"
+          strokeLinecap="square"
+          strokeWidth="20"
+        />
+        <path
+          d="M -40 620 C 260 548 468 510 706 466 C 966 418 1168 390 1440 354"
+          fill="none"
+          stroke="#1A1612"
+          strokeOpacity="0.36"
+          strokeWidth="1.4"
         />
       </svg>
 
-      <div
-        ref={machineRef}
-        className="absolute -right-[38vw] top-[10svh] z-0 h-[56svh] w-[112vw] opacity-90 sm:-right-[24vw] md:-right-[9vw] md:top-[8svh] md:h-[82svh] md:w-[72vw]"
-        onPointerEnter={() => fireRoute(false)}
-      >
-        <IntelligenceCore pulse={pulse} />
-      </div>
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-7rem)] w-full max-w-[1540px] flex-col justify-between">
+        <div
+          ref={metaRef}
+          className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 pb-3 font-mono text-[10px] uppercase text-stone sm:text-[11px]"
+        >
+          <span>NEEL.OS / HERO SURFACE</span>
+          <span>AI Systems Engineer · Mumbai, India — 2026</span>
+        </div>
 
-      <div className="relative z-10 mx-auto grid min-h-[calc(104svh-8rem)] w-full max-w-[1500px] content-between">
-        <div className="grid gap-8 md:grid-cols-[0.72fr_0.28fr]">
-          <div>
-            <div className="mb-8 flex items-center gap-3 font-mono text-[10px] uppercase text-stone md:text-[11px]">
-              <RadioTower className="h-4 w-4 text-electric" aria-hidden="true" />
-              <span>system_init / authored surface</span>
-              <span className="hidden h-px w-20 bg-ink/15 md:block" />
-              <span className="hidden text-ink md:inline">
-                {routeState === "idle"
-                  ? "field quiet"
-                  : routeState === "armed"
-                    ? "route drawing"
-                    : "route confirmed"}
-              </span>
-            </div>
-
-            <h1
-              id="hero-title"
-              className="relative max-w-[9.8ch] font-mono text-[4.4rem] font-black uppercase leading-[0.76] text-ink sm:text-[6.9rem] md:text-[9.2rem] lg:text-[12.2rem]"
-            >
-              {["NEEL.OS", "BUILT", "TO REASON"].map((line, index) => (
+        <div className="relative py-8 sm:py-10 md:py-12">
+          <h1
+            id="hero-title"
+            className="max-w-[11.2ch] font-mono text-[clamp(4.2rem,14vw,14.5rem)] font-black uppercase leading-[0.76] text-ink"
+          >
+            {["NEEL KACHHADIA", "BUILDS SYSTEMS", "THAT THINK."].map(
+              (line, index) => (
                 <span key={line} className="block overflow-hidden pb-2">
                   <span
                     ref={(node) => {
                       if (node) titleRefs.current[index] = node;
                     }}
                     className={`block ${
-                      index === 1 ? "ml-[21vw] font-serif italic md:ml-40" : ""
+                      index === 2
+                        ? "font-serif font-normal italic"
+                        : index === 1
+                          ? "pl-[12vw] sm:pl-[18vw]"
+                          : ""
                     }`}
                   >
                     {line}
                   </span>
                 </span>
-              ))}
-            </h1>
-          </div>
-
-          <div className="hidden self-start pt-24 font-mono text-[10px] uppercase leading-relaxed text-stone md:block">
-            <div className="border-l border-ink/15 pl-4">
-              <div>cream paper</div>
-              <div>ink logic</div>
-              <div>electric route</div>
-            </div>
-          </div>
+              ),
+            )}
+          </h1>
         </div>
 
-        <div className="mt-14 grid gap-8 md:grid-cols-[0.92fr_1.08fr] md:items-end">
-          <p
-            ref={copyRef}
-            className="max-w-3xl font-serif text-3xl italic leading-[0.98] text-stone sm:text-4xl md:text-5xl"
-          >
-            An editorial artifact wrapped around a personal AI operating system:
-            case files, reasoning routes, and human judgment under glass.
-          </p>
-
-          <div
-            ref={ctaRef}
-            className="grid gap-6 border-t border-ink/10 pt-6 md:justify-self-end md:text-right"
-          >
-            <p className="max-w-xl font-mono text-sm leading-relaxed text-ink-light md:text-base">
-              Neel Kachhadia builds agentic finance systems, semantic matching
-              engines, and interfaces that make intelligent machinery feel
-              legible.
+        <div className="relative z-40 grid gap-6 border-t border-ink/10 pt-5 md:grid-cols-[1fr_auto] md:items-end">
+          <div ref={copyRef} className="grid max-w-3xl gap-3">
+            <p className="font-serif text-[clamp(1.65rem,4.2vw,4.8rem)] italic leading-[0.96] text-ink-light">
+              Agentic financial systems, semantic matching engines, and
+              interfaces that make intelligence legible.
             </p>
+          </div>
 
-            <div className="flex flex-wrap gap-3 md:justify-end">
+          <div ref={ctaRef} className="grid gap-3 md:justify-items-end">
+            <AnimatePresence mode="wait">
+              {status !== "quiet" && (
+                <motion.div
+                  key={status}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="font-mono text-[10px] uppercase text-ink"
+                >
+                  {status === "opening" ? "SURFACE OPENING" : "SIGNAL ACCEPTED"}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex flex-col items-start gap-3 sm:flex-row">
               <motion.button
                 type="button"
-                onClick={() => fireRoute(true)}
-                onPointerEnter={() => fireRoute(false)}
-                whileHover={{ x: isMotionEnabled ? -3 : 0 }}
+                onClick={() => openSystem(true)}
+                onPointerEnter={() => openSystem(false)}
+                whileHover={{ y: isMotionEnabled ? -2 : 0 }}
                 whileTap={{ scale: isMotionEnabled ? 0.97 : 1 }}
-                className="group inline-flex items-center gap-3 border border-ink bg-ink px-5 py-3 font-mono text-xs uppercase text-cream transition-colors hover:bg-electric hover:text-ink"
+                className="group inline-flex min-h-12 items-center gap-3 border border-ink bg-ink px-5 py-3 font-mono text-xs uppercase text-cream transition-colors hover:bg-electric hover:text-ink"
               >
-                Enter OS
+                Enter System
                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
               </motion.button>
 
-              <motion.button
-                type="button"
-                onClick={() =>
-                  window.dispatchEvent(new CustomEvent("open-command-palette"))
-                }
+              <motion.a
+                href="#work"
+                onMouseEnter={() => openSystem(false)}
+                onFocus={() => openSystem(false)}
                 whileHover={{ x: isMotionEnabled ? 3 : 0 }}
                 whileTap={{ scale: isMotionEnabled ? 0.97 : 1 }}
-                className="inline-flex items-center gap-3 border border-ink/15 bg-paper/80 px-5 py-3 font-mono text-xs uppercase text-ink transition-colors hover:border-electric"
+                className="inline-flex min-h-12 items-center gap-3 border border-ink/20 bg-paper/80 px-5 py-3 font-mono text-xs uppercase text-ink transition-colors hover:border-electric"
               >
-                <Command className="h-4 w-4 text-electric" aria-hidden="true" />
-                Command
-              </motion.button>
+                View Work
+                <MoveRight className="h-4 w-4 text-electric" aria-hidden="true" />
+              </motion.a>
             </div>
-
-            <nav
-              aria-label="Chapter navigation"
-              className="grid grid-cols-2 gap-x-5 gap-y-2 font-mono text-[10px] uppercase text-stone sm:grid-cols-3 md:justify-items-end"
-            >
-              {chapters.map(([label, href]) => (
-                <a
-                  key={label}
-                  href={href}
-                  onMouseEnter={() => fireRoute(false)}
-                  onFocus={() => fireRoute(false)}
-                  className="group inline-flex items-center gap-2 transition-colors hover:text-ink"
-                >
-                  <span>{label}</span>
-                  <MoveRight
-                    className="h-3 w-3 text-electric opacity-0 transition-opacity group-hover:opacity-100"
-                    aria-hidden="true"
-                  />
-                </a>
-              ))}
-            </nav>
           </div>
         </div>
       </div>
