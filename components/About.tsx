@@ -112,7 +112,7 @@ export default function About() {
         <div className="md:sticky md:top-28 md:self-start">
           <span className="flex items-center gap-2 font-mono text-[11px] uppercase text-stone">
             <UserRound className="h-4 w-4 text-electric" aria-hidden="true" />
-            05 / HUMAN_LAYER
+            human record
           </span>
           <h2
             id="about-title"
